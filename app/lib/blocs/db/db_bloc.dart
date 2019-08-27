@@ -54,7 +54,6 @@ class DBBloc extends Bloc<DBEvent, DBState> {
   ) async* {
     if (event is GetManifest) {
       assert(authBloc != null);
-
       authBloc.dispatch(SetAuthLoading());
       yield DBLoading();
       final DestinyManifest manifest = await apiRepository.getManifest();
@@ -73,6 +72,9 @@ class DBBloc extends Bloc<DBEvent, DBState> {
       }
 
       authBloc.dispatch(VerifyCredentials());
+    }
+    if (event is ThrowDBError) {
+      yield DBError(event.error, event.stackTrace);
     }
   }
 }

@@ -54,6 +54,15 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
+    // return CupertinoApp(
+    //   debugShowCheckedModeBanner: false,
+    //   theme: CupertinoThemeData(
+    //     primaryColor: Colors.blue,
+    //   ),
+    //   home: CupertinoPageScaffold(
+    //     child: Sets(),
+    //   ),
+    // );
     return BlocProviderTree(
       blocProviders: [
         BlocProvider<AuthBloc>(bloc: _authBloc),
@@ -61,9 +70,8 @@ class _AppState extends State<App> {
       ],
       child: CupertinoApp(
         debugShowCheckedModeBanner: false,
-        theme: CupertinoThemeData(
-          primaryColor: Colors.blue,
-        ),
+        theme:
+            const CupertinoThemeData(primaryColor: CupertinoColors.activeBlue),
         home: BlocBuilder<AuthEvent, AuthState>(
           bloc: _authBloc,
           builder: (BuildContext context, AuthState state) {

@@ -12,7 +12,7 @@ class Settings extends StatelessWidget {
     return SafeArea(
       child: Container(
         child: Column(
-          children: <Widget>[
+          children: [
             const Text('Settings'),
             CupertinoButton(
               child: Text('Log out'),

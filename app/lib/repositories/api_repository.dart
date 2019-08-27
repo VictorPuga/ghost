@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ghost/keys.dart';
 import 'package:ghost/models/models.dart';
 import 'package:ghost/utils.dart';
 import 'package:meta/meta.dart';
@@ -12,7 +13,7 @@ class APIRepository {
   static Dio _initClient() {
     final dio = Dio(BaseOptions(
       baseUrl: 'https://www.bungie.net/platform',
-      headers: {'X-API-Key': '662f235fa3ff4e11babe3ea57d1ef94f'},
+      headers: {'X-API-Key': apiKey},
     ));
     (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
     return dio;

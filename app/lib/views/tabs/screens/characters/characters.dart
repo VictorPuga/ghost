@@ -76,7 +76,7 @@ class _CharactersViewState extends State<CharactersView> {
                   itemBuilder: (BuildContext context, int i) {
                     if (state is InitialAPIState ||
                         (state is APILoading && state.prevState == null)) {
-                      return CharacterCard.empty();
+                      return CharacterCard();
                     }
                     if (state.hasError) {
                       return i == 0 ? Text('error') : Container();

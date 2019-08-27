@@ -8,12 +8,12 @@ class DestinyProfileResponse extends Destiny2Model {
   final profileCurrencies;
   final profileProgression;
   final Map<String, CharacterComponent> characters;
-  final characterInventories;
+  final Map<String, List<ItemComponent>> characterInventories;
   final characterProgressions;
   final characterRenderData;
   final characterActivities;
-  final characterEquipment;
-  final itemComponents;
+  final Map<String, List<ItemComponent>> characterEquipment;
+  final ItemComponentsComponent itemComponents;
   final characterUninstancedItemComponents;
   final profilePlugSets;
   final characterPlugSets;
@@ -126,9 +126,19 @@ class DestinyProfileResponse extends Destiny2Model {
             (k, v) => MapEntry(k, CharacterComponent.fromJson(v)),
           )
         : null;
-    final characterInventories = res['characterInventories'] != null
-        ? res['characterInventories']
-        : null;
+    final Map<String, List<ItemComponent>> characterInventories =
+        res['characterInventories'] != null
+            ? Map.from(res['characterInventories']['data']).map(
+                (k, v) => MapEntry(
+                  k,
+                  List.from(
+                    res['characterInventories']['data'][k]['items'].map(
+                      (_v) => ItemComponent.fromJson(_v),
+                    ),
+                  ),
+                ),
+              )
+            : null;
     final characterProgressions = res['characterProgressions'] != null
         ? res['characterProgressions']
         : null;
@@ -138,12 +148,23 @@ class DestinyProfileResponse extends Destiny2Model {
     final characterActivities = res['characterActivities'] != null //
         ? res['characterActivities']
         : null;
-    final characterEquipment = res['characterEquipment'] != null //
-        ? res['characterEquipment']
-        : null;
-    final itemComponents = res['itemComponents'] != null //
-        ? res['itemComponents']
-        : null;
+    final Map<String, List<ItemComponent>> characterEquipment =
+        res['characterEquipment'] != null //
+            ? Map.from(res['characterEquipment']['data']).map(
+                (k, v) => MapEntry(
+                  k,
+                  List.from(
+                    v['items'].map((_v) => ItemComponent.fromJson(_v)),
+                  ),
+                ),
+              )
+            : null;
+
+    final ItemComponentsComponent itemComponents =
+        res['itemComponents'] != null //
+            ? ItemComponentsComponent.fromJson(res['itemComponents'])
+            : null;
+
     final characterUninstancedItemComponents =
         res['characterUninstancedItemComponents'] != null
             ? res['characterUninstancedItemComponents']

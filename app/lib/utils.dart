@@ -87,12 +87,35 @@ parseJson(String text) {
   return compute(_decode, text);
 }
 
+abstract class safelyCompare {
+  static int numbers(num n1, num n2) {
+    if (n1 != null && n2 != null) {
+      return n1.compareTo(n2);
+    }
+    if (n1 == null) {
+      return -1;
+    }
+    return 1;
+  }
+
+  static int strings(String s1, String s2) {
+    if (s1 != null && s2 != null) {
+      return s1.compareTo(s2);
+    }
+    if (s1 == null) {
+      return -1;
+    }
+    return 1;
+  }
+}
+
 enum Sorting {
   type,
   bucket,
 }
 
 enum Order {
+  defaultOrder,
   levelAsc,
   levelDesc,
   nameAsc,
@@ -102,9 +125,29 @@ enum Order {
 Map<int, List<Item>> sortItems(
   List<Item> items, {
   @required Sorting by,
-  // Order orderedBy = Order.levelAsc,
+  Order orderedBy = Order.defaultOrder,
 }) {
   final Map<int, List<Item>> sortedItems = {};
+
+  switch (orderedBy) {
+    case Order.levelAsc:
+      items.sort(
+          (i1, i2) => safelyCompare.numbers(i1.primaryStat, i2.primaryStat));
+      break;
+    case Order.levelDesc:
+      items.sort(
+          (i1, i2) => safelyCompare.numbers(i2.primaryStat, i1.primaryStat));
+      break;
+    case Order.nameAsc:
+      items.sort((i1, i2) => safelyCompare.strings(i1.name, i2.name));
+      break;
+    case Order.nameDesc:
+      items.sort((i1, i2) => safelyCompare.strings(i2.name, i1.name));
+      break;
+    case Order.defaultOrder:
+      break;
+  }
+
   items.forEach((item) {
     int sub;
 
@@ -126,14 +169,14 @@ Map<int, List<Item>> sortItems(
 void showBasicAlert(BuildContext context, String title, String message) {
   showCupertinoDialog(
     context: context,
-    builder: (_) {
+    builder: (BuildContext ctx) {
       return CupertinoAlertDialog(
         title: Text(title),
         content: Text(message),
-        actions: <Widget>[
+        actions: [
           CupertinoDialogAction(
             child: const Text('Ok'),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(ctx).pop(),
           )
         ],
       );

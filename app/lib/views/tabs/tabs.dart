@@ -10,21 +10,21 @@ class Tabs extends StatelessWidget {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
         currentIndex: 1,
-        items: <BottomNavigationBarItem>[
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            title: const Text('Sets'),
+            title: Text('Sets'),
             icon: Icon(CupertinoIcons.tags_solid),
           ),
           BottomNavigationBarItem(
-            title: const Text('Characters'),
+            title: Text('Characters'),
             icon: Icon(CupertinoIcons.group_solid),
           ),
           BottomNavigationBarItem(
-            title: const Text('Search'),
+            title: Text('Search'),
             icon: Icon(CupertinoIcons.search),
           ),
           BottomNavigationBarItem(
-            title: const Text('Settings'),
+            title: Text('Settings'),
             icon: Icon(CupertinoIcons.gear_solid),
           )
         ],

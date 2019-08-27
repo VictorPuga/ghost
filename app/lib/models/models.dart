@@ -2,6 +2,7 @@ library models;
 
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:ghost/utils.dart';
 import 'package:meta/meta.dart';
 import 'package:equatable/equatable.dart';
 

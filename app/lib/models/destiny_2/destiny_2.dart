@@ -63,7 +63,7 @@ abstract class DestinyComponentType extends Destiny2Model {
   /// Returns `itemComponents` for character.
   static const int itemInstances = 300;
 
-  /// Returns `characterUninstancedItemComponents` and `itemComponents`.
+  /// Returns `characterUninstancedItemComponents` and `itemComponents` for profile.
   ///
   /// Returns `uninstancedItemComponents` and `itemComponents` for character.
   static const int itemObjectives = 301;
@@ -226,6 +226,7 @@ abstract class DestinyBucketHash extends Destiny2Model {
   static const int kinetic = 1498876634;
   static const int energy = 2465295065;
   static const int power = 953998645;
+
   static const int head = 3448274439;
   static const int arms = 3551918588;
   static const int body = 14239492;
@@ -303,6 +304,7 @@ class Item extends Destiny2Model {
   final int subTypeHash;
 
   bool isEquiped;
+  final bool hasPrimaryStat;
 
   final damageType;
 
@@ -318,7 +320,8 @@ class Item extends Destiny2Model {
     this.subTypeHash,
     this.isEquiped,
     this.damageType,
-  }) : super([
+  })  : hasPrimaryStat = primaryStat != null,
+        super([
           name,
           itemHash,
           itemInstanceId,
@@ -371,6 +374,7 @@ class Item extends Destiny2Model {
         'subTypeHash': subTypeHash,
         'isEquiped': isEquiped,
         'damageType': damageType,
+        'hasPrimaryStat': hasPrimaryStat,
       };
 
   void equip() => isEquiped = true;
@@ -443,7 +447,7 @@ class Character extends Destiny2Model {
         'light': light,
         'emblemPath': emblemPath,
         'emblemBackgroundPath': emblemBackgroundPath,
-        'emblemColor': emblemColor,
+        'emblemColor': emblemColor.toString(),
         'level': level,
         'titleRecordHash': titleRecordHash,
       };
@@ -504,15 +508,32 @@ class SortedItems<T> extends Destiny2Model {
   Map<int, List<Item>> items;
 
   SortedItems({
-    this.categories = const {},
-    this.items = const {},
-  }) : super([categories, items]);
+    @required this.categories,
+    @required this.items,
+  }) : super([categories, items]) {}
 
   @override
   Map<String, dynamic> toJson() => {
         'categories': categories,
         'items': items,
       };
+
+  void addTo(int key, List<Item> newItems, {T newCategory}) {
+    if (categories.containsKey(key)) {
+      if (newCategory == null) {
+        items.addAll({key: newItems});
+      } else {
+        throw Exception("Don't provide a `newCategory` if it already exists");
+      }
+    } else if (newCategory != null) {
+      categories.addAll({key: newCategory});
+      items.addAll({key: newItems});
+    } else {
+      throw Exception(
+        'The `key` does not exist. Provide a `newCategory` to add those `items`',
+      );
+    }
+  }
 
   /// Returns a new `SortedItems` instance with the categories casted to the indicated type.
   ///
@@ -528,16 +549,32 @@ class SortedItems<T> extends Destiny2Model {
   }
 
   /// Returns a `Map` with the corresponding category and items.
-  Map<String, dynamic> operator [](int i) {
+  SortedFraction<T> operator [](int i) {
     if (categories != null &&
         items != null &&
         categories[i] != null &&
         items[i] != null) {
-      return {
-        'category': categories[i],
-        'items': items[i],
-      };
+      return SortedFraction(
+        category: categories[i],
+        items: items[i],
+      );
     }
     return null;
   }
+}
+
+class SortedFraction<T> extends Destiny2Model {
+  final T category;
+  final List<Item> items;
+
+  SortedFraction({
+    @required this.category,
+    @required this.items,
+  }) : super([category, items]);
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'category': category,
+        'items': items,
+      };
 }

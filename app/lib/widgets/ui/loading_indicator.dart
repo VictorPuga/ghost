@@ -11,7 +11,7 @@ class LoadingIndicator extends StatelessWidget {
       builder: (_, ProgressState state) {
         return Column(
           mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
+          children: [
             Text(state.status),
             Text(state.progress.toString()),
           ],

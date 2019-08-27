@@ -107,3 +107,14 @@ class APICharacter extends APIState {
     error: $error,
   }''';
 }
+
+class APIAllItems extends APIState {
+  final SortedItems<Character> sortedItems;
+
+  APIAllItems({this.sortedItems}) : super([sortedItems]);
+
+  @override
+  String toString() => '''APIAllItems {
+    sortedItems: ${sortedItems.toJsonString()},
+  }''';
+}

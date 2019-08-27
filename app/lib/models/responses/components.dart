@@ -200,6 +200,57 @@ class ItemComponentsComponent extends Destiny2Model {
     );
   }
 
+  // static Map<String, ItemComponentsComponent> multiple(
+  //   Map<String, dynamic> res,
+  //   List<String> characterIds,
+  // ) {
+  //   Map<String, ItemComponentsComponent> itemComponents = {};
+  //   for (String id in characterIds) {
+  //     final List<MapEntry<String, InstanceComponent>> entries =
+  //         res['instances'] != null
+  //             ? Map<String, dynamic>.from(res['instances']['data'])
+  //                 .entries
+  //                 .map((e) =>
+  //                     MapEntry(e.key, InstanceComponent.fromJson(e.value)))
+  //                 .toList()
+  //             : [];
+  //     // final perks = res['perks'] != null //
+  //     //     ? res['perks']['data']
+  //     //     : null;
+  //     // final renderData = res['renderData'] != null //
+  //     //     ? res['renderData']['data']
+  //     //     : null;
+  //     // final stats = res['stats'] != null //
+  //     //     ? res['stats']['data']
+  //     //     : null;
+  //     // final sockets = res['sockets'] != null //
+  //     //     ? res['sockets']['data']
+  //     //     : null;
+  //     // final talentGrids = res['talentGrids'] != null //
+  //     //     ? res['talentGrids']['data']
+  //     //     : null;
+  //     // final plugStates = res['plugStates'] != null //
+  //     //     ? res['plugStates']['data']
+  //     //     : null;
+  //     // final objectives = res['objectives'] != null //
+  //     //     ? res['objectives']['data']
+  //     //     : null;
+
+  //     // itemComponents[id] = ItemComponentsComponent(
+  //     //   instances: Map.fromEntries(entries),
+  //     //   perks: perks,
+  //     //   renderData: renderData,
+  //     //   stats: stats,
+  //     //   sockets: sockets,
+  //     //   talentGrids: talentGrids,
+  //     //   plugStates: plugStates,
+  //     //   objectives: objectives,
+  //     // );
+  //   }
+  //   print(characterIds);
+  //   return {};
+  // }
+
   @override
   Map<String, dynamic> toJson() => {
         'instances': instances,

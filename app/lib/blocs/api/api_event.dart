@@ -86,21 +86,29 @@ class GetCharacter extends APIEvent {
   final String characterId;
   final String accessToken;
   final Sorting sortBy;
+  // final Order orderBy;
 
   GetCharacter({
     @required this.card,
     @required this.characterId,
     @required this.accessToken,
     @required this.sortBy,
+    // this.orderBy,
   })  : assert(sortBy != null),
-        super([card, characterId, accessToken, sortBy]);
+        super([
+          card,
+          characterId,
+          accessToken,
+          sortBy,
+          // orderBy,
+        ]);
 
   @override
   String toString() => '''GetCharacter {
     card: $card,
     characterId: $characterId,
     accessToken: $accessToken,
-    sorted: $sortBy,
+    sortBy: $sortBy,
   }''';
 }
 
@@ -123,6 +131,35 @@ class EquipItem extends APIEvent {
     characterId: $characterId,
     membershipType: $membershipType,
     accessToken: $accessToken,
+  }''';
+}
+
+class GetAllItems extends APIEvent {
+  final UserInfoCard card;
+  final String accessToken;
+  final int bucketHash;
+  final Order orderBy;
+
+  GetAllItems({
+    @required this.card,
+    @required this.accessToken,
+    @required this.bucketHash,
+    this.orderBy = Order.defaultOrder,
+  })  : assert(bucketHash != null),
+        assert(orderBy != null),
+        super([
+          card,
+          accessToken,
+          bucketHash,
+          orderBy,
+        ]);
+
+  @override
+  String toString() => '''GetAllItems {
+    card: $card,
+    accessToken: ${accessToken.substring(0, 40)}... 
+    bucketHash: $bucketHash,
+    orderBy: $orderBy,
   }''';
 }
 // class RefreshToken extends APIEvent {

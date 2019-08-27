@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:ghost/models/models.dart';
-import 'package:ghost/utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets.dart';
 
@@ -17,26 +16,26 @@ class CharacterCard extends StatelessWidget {
 
   static const TextStyle _titleStyle = TextStyle(
     color: Colors.white,
-    fontSize: 20.0,
+    // fontSize: 20.0,
   );
 
   static const TextStyle _subtitleStyle = TextStyle(
     color: Colors.white70,
-    fontSize: 15.0,
+    // fontSize: 15.0,
     fontWeight: FontWeight.w400,
   );
 
   static const TextStyle _lightStyle = const TextStyle(
     color: Colors.cyan,
-    fontSize: 25.0,
+    // fontSize: 25.0,
   );
 
   CharacterCard({
     Key key,
     this.character,
-    this.empty = false,
     this.onPressed,
-  })  : _className = character?.className,
+  })  : empty = character?.className == null,
+        _className = character?.className,
         _raceName = character?.raceName,
         _color = character?.emblemColor,
         _emblemPath = character?.emblemBackgroundPath,
@@ -52,14 +51,14 @@ class CharacterCard extends StatelessWidget {
         // decoration: BoxDecoration(
         //   boxShadow: [
         //     BoxShadow(
-        //       color: Color.fromRGBO(0, 0, 0, 0.2),
-        //       blurRadius: 5.0,
-        //       offset: Offset(1.0, 1.0),
+        //       color: Color.fromRGBO(0, 0, 0, 0.5),
+        //       blurRadius: 10,
+        //       offset: Offset(2, 2),
         //     )
         //   ],
         // ),
         child: Row(
-          children: <Widget>[
+          children: [
             Expanded(
               child: AspectRatio(
                 aspectRatio: 474 / 96,
@@ -80,39 +79,94 @@ class CharacterCard extends StatelessWidget {
     );
   }
 
-  _content() => Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          CachedNetworkImage(
-            imageUrl: _emblemPath,
-            placeholder: (_, __) => Container(),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10.0, left: 70.0),
-            child: Text(
-              capitalize(_className),
-              style: _titleStyle,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 35.0, left: 72.0),
-            child: Text(
-              capitalize(_raceName),
-              style: _subtitleStyle,
-            ),
-          ),
-          Align(
-            alignment: Alignment.topRight,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0, right: 10.0),
-              child: Text(
-                _light.toString(),
-                style: _lightStyle,
+  _content() {
+    return Stack(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: CachedNetworkImage(
+                imageUrl: _emblemPath,
+                placeholder: (_, __) => Container(),
+                fit: BoxFit.fill,
               ),
             ),
-          ),
-        ],
-      );
-
-  factory CharacterCard.empty() => CharacterCard(empty: true);
+          ],
+        ),
+        Row(
+          children: [
+            // 6/28, 21/28, 1/28
+            Flexible(flex: 6, child: Container()),
+            Flexible(
+              flex: 21,
+              child: Column(
+                children: [
+                  Flexible(flex: 1, child: Container()),
+                  Flexible(
+                    flex: 4,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Container(
+                                    child: FittedBox(
+                                      fit: BoxFit.fill,
+                                      child: Text(
+                                        _className,
+                                        style: _titleStyle,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: Container(
+                                    child: FittedBox(
+                                      fit: BoxFit.fill,
+                                      child: Text(
+                                        _raceName,
+                                        style: _subtitleStyle,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Expanded(
+                              flex: 7,
+                              child: FittedBox(
+                                fit: BoxFit.fill,
+                                child: Text(
+                                  _light.toString(),
+                                  style: _lightStyle,
+                                ),
+                              ),
+                            ),
+                            Flexible(flex: 6, child: Container()),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(flex: 1, child: Container())
+                ],
+              ),
+            ),
+            Flexible(flex: 1, child: Container())
+          ],
+        ),
+      ],
+    );
+  }
 }

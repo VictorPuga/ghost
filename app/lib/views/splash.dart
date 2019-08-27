@@ -8,7 +8,7 @@ class SplashView extends StatelessWidget {
     return CupertinoPageScaffold(
       child: SafeArea(
         child: Stack(
-          children: <Widget>[
+          children: [
             Center(
               child: Text('Splash Screen'),
             ),
