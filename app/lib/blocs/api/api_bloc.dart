@@ -1,4 +1,12 @@
 import 'dart:async';
+import 'package:bungie_api/enums/destiny_component_type_enum.dart';
+import 'package:bungie_api/models/destiny_character_component.dart';
+import 'package:bungie_api/models/destiny_character_response.dart';
+import 'package:bungie_api/models/destiny_inventory_item_definition.dart';
+import 'package:bungie_api/models/destiny_item_component.dart';
+import 'package:bungie_api/models/destiny_item_instance_component.dart';
+import 'package:bungie_api/models/destiny_profile_response.dart';
+import 'package:bungie_api/models/user_membership_data.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ghost/repositories/db_repository.dart';
@@ -45,17 +53,20 @@ class APIBloc extends Bloc<APIEvent, APIState> {
           await apiRepository.getMembership(credentials.accessToken);
       yield APICredentials(credentials, membershipData);
     }
+
     if (event is GetUser) {
       throw Exception('`GetUser` event is not handled...');
       // yield APILoading();
       // await apiRepository.getUser(event.membershipId);
     }
+
     if (event is GetMembership) {
       throw Exception('`GetMembership` event is not handled...');
       // yield APILoading();
       // final UserMembershipData membership =
       //     await apiRepository.getMembership(event.accessToken);
     }
+
     if (event is GetProfile) {
       yield APILoading();
       final DestinyProfileResponse profile = await apiRepository.getProfile(
@@ -65,6 +76,7 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       );
       yield APIProfile(profile);
     }
+
     if (event is GetCharacters) {
       assert(dbRepository != null);
       yield APILoading<APICharacters>(
@@ -74,11 +86,11 @@ class APIBloc extends Bloc<APIEvent, APIState> {
           await apiRepository.getProfile(
         card: event.card,
         accessToken: event.accessToken,
-        components: [DestinyComponentType.characters],
+        components: [DestinyComponentType.Characters],
       );
 
-      final List<CharacterComponent> characterList =
-          profileResponse.characters.values.toList();
+      final List<DestinyCharacterComponent> characterList =
+          profileResponse.characters.data.values.toList();
       final List<CharacterData> characterData =
           await dbRepository.getCharacterData(characterList);
 
@@ -89,6 +101,7 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       ];
       yield APICharacters(characters);
     }
+
     if (event is GetCharacter) {
       assert(dbRepository != null);
       yield APILoading<APICharacter>(
@@ -100,45 +113,20 @@ class APIBloc extends Bloc<APIEvent, APIState> {
         accessToken: event.accessToken,
         characterId: event.characterId,
         components: [
-          DestinyComponentType.characterInventories,
-          DestinyComponentType.characterEquipment,
-          DestinyComponentType.itemInstances,
+          DestinyComponentType.CharacterInventories,
+          DestinyComponentType.CharacterEquipment,
+          DestinyComponentType.ItemInstances,
         ],
       );
 
-      final inventory = characterResponse.inventory
-        ..removeWhere((el) => el.expirationDate != null);
-
-      final List<ItemComponent> itemComponents = [
-        ...inventory,
-        ...characterResponse.equipment,
-      ];
-      final Map<String, InstanceComponent> instances = characterResponse
-          .itemComponents.instances
-        ..removeWhere((k, v) => v.canEquip == false);
-
-      final List<int> hashes = itemComponents.map((el) => el.itemHash).toList();
-      final List<ItemDefinition> itemDefinitions =
-          await dbRepository.getItemData(hashes);
-
-      final List<Item> items = [];
-      instances.forEach((id, instance) {
-        final ItemComponent item =
-            itemComponents.firstWhere((el) => el.itemInstanceId == id);
-        // final InstanceComponent instance = instances[item.itemInstanceId];
-        final ItemDefinition definition =
-            itemDefinitions.singleWhere((d) => d.hash == item.itemHash);
-
-        items.add(Item.fromResponse(item, definition, instance));
-      });
+      final sorted = await _computeSorted(
+        characterResponse.inventory.data?.items ?? [],
+        characterResponse.equipment.data?.items ?? [],
+        characterResponse.itemComponents.instances.data ?? {},
+        sortBy: event.sortBy,
+      );
 
       SortedItems sortedItems;
-
-      final Map<int, List<Item>> sorted = sortItems(
-        items,
-        by: event.sortBy,
-        //orderedBy: event.orderBy,
-      );
 
       switch (event.sortBy) {
         case Sorting.bucket:
@@ -154,12 +142,13 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       }
 
       yield APICharacter(
-        items: items,
+        // items: items,
         sortedItems: sortedItems,
         // inventory: characterResponse.inventory,
         // equipment: characterResponse.equipment,
       );
     }
+
     if (event is EquipItem) {
       APICharacter prevState;
       SortedItems sorted;
@@ -200,7 +189,7 @@ class APIBloc extends Bloc<APIEvent, APIState> {
         });
 
         yield APICharacter(
-          items: prevState.items,
+          // items: prevState.items,
           sortedItems: SortedItems(
             categories: sorted.categories,
             items: newItems,
@@ -210,11 +199,32 @@ class APIBloc extends Bloc<APIEvent, APIState> {
         // TODO: Implement APITransferError.
         print('Error equipping item. Code: $code');
         yield APICharacter(
-          items: prevState.items,
+          // items: prevState.items,
           sortedItems: prevState.sortedItems,
-          error: 'Error code $code',
+          error: {'code': code},
         );
       }
+    }
+
+    if (event is GetSets) {
+      assert(dbRepository != null);
+      yield APILoading<APICharacters>(
+        prevState: currentState is GetSets ? currentState : null,
+      );
+      final DestinyProfileResponse profileResponse =
+          await apiRepository.getProfile(
+        card: event.card,
+        accessToken: event.accessToken,
+        components: [DestinyComponentType.Characters],
+      );
+
+      final List<String> characterIds =
+          profileResponse.characters.data.keys.toList();
+
+      yield APISets(
+        characterIds: characterIds,
+        sets: [],
+      );
     }
 
     if (event is GetAllItems) {
@@ -223,16 +233,16 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       yield APILoading<APIAllItems>(
         prevState: currentState is APIAllItems ? currentState : null,
       );
-
       final DestinyProfileResponse profileResponse =
           await apiRepository.getProfile(
         card: event.card,
         accessToken: event.accessToken,
         components: [
-          DestinyComponentType.characters,
-          DestinyComponentType.characterInventories,
-          DestinyComponentType.characterEquipment,
-          DestinyComponentType.itemInstances,
+          DestinyComponentType.ProfileInventories,
+          DestinyComponentType.ItemInstances,
+          DestinyComponentType.Characters,
+          DestinyComponentType.CharacterInventories,
+          DestinyComponentType.CharacterEquipment,
         ],
       );
 
@@ -240,63 +250,186 @@ class APIBloc extends Bloc<APIEvent, APIState> {
         categories: <int, Character>{},
         items: <int, List<Item>>{},
       );
+      List<Item> vaultItems = [];
 
-      final Map<String, InstanceComponent> instances = profileResponse
-          .itemComponents.instances
-        ..removeWhere((k, v) => v.canEquip == false);
+      for (int i = 0; i < 3; i++) {
+        sortedItems.addTo(
+          i,
+          [],
+          newCategory: Character(),
+        );
+      }
 
-      for (String id in profileResponse.characters.keys) {
-        final inventory = profileResponse.characterInventories[id]
-          ..removeWhere((el) => el.expirationDate != null);
-
-        final List<ItemComponent> itemComponents = [
-          ...inventory,
-          ...profileResponse.characterEquipment[id],
-        ];
-
-        final List<int> hashes =
-            itemComponents.map((el) => el.itemHash).toList();
-        final List<ItemDefinition> itemDefinitions =
-            await dbRepository.getItemData(hashes);
-
-        final List<Item> items = [];
-
-        instances.forEach((id, instance) {
-          final ItemComponent item = itemComponents.firstWhere(
-            (el) => el.itemInstanceId == id,
-            orElse: () => null,
+      if (event.characterId == null) {
+        for (String id in profileResponse.characters.data.keys) {
+          final list = await _computeItemList(
+            profileResponse.characterInventories.data[id].items,
+            profileResponse.characterEquipment.data[id].items,
+            profileResponse.itemComponents.instances.data,
+            orderBy: event.orderBy,
+            bucketHash: event.bucketHash,
+            statHash: event.statHash,
           );
-          if (item != null) {
-            final ItemDefinition definition =
-                itemDefinitions.singleWhere((d) => d.hash == item.itemHash);
 
-            items.add(Item.fromResponse(item, definition, instance));
-          }
-        });
+          final DestinyCharacterComponent charComponent =
+              profileResponse.characters.data[id];
+          final List<CharacterData> data =
+              await dbRepository.getCharacterData([charComponent]);
 
-        final Map<int, List<Item>> sorted = sortItems(
-          items,
-          by: Sorting.bucket,
-          orderedBy: event.orderBy,
+          final character = Character.fromResponse(charComponent, data[0]);
+
+          sortedItems.addTo(
+            num.tryParse(id),
+            list,
+            newCategory: character,
+          );
+        }
+      } else {
+        final sorted = await _computeItemList(
+          profileResponse.characterInventories.data[event.characterId].items,
+          profileResponse.characterEquipment.data[event.characterId].items,
+          profileResponse.itemComponents.instances.data,
+          orderBy: event.orderBy,
+          bucketHash: event.bucketHash,
+          statHash: event.statHash,
         );
 
-        final CharacterComponent charComponent = profileResponse.characters[id];
+        final DestinyCharacterComponent charComponent =
+            profileResponse.characters.data[event.characterId];
         final List<CharacterData> data =
             await dbRepository.getCharacterData([charComponent]);
 
         final character = Character.fromResponse(charComponent, data[0]);
 
         sortedItems.addTo(
-          num.tryParse(id),
-          sorted[event.bucketHash],
+          num.tryParse(event.characterId),
+          sorted,
           newCategory: character,
         );
       }
-      yield APIAllItems(sortedItems: sortedItems);
+      vaultItems = await _computeItemList(
+        profileResponse.profileInventory.data.items,
+        [],
+        profileResponse.itemComponents.instances.data,
+        bucketHash: event.bucketHash,
+        statHash: event.statHash,
+        classHash: event.classCategoryHash,
+      );
+
+      yield APIAllItems(
+        sortedItems: sortedItems,
+        vaultItems: vaultItems,
+      );
     }
 
     if (event is ThrowAPIError) {
       yield APIError(error: event.error, stacktrace: event.stackTrace);
     }
+  }
+
+  Future<Map<int, List<Item>>> _computeSorted(
+    List<DestinyItemComponent> inv,
+    List<DestinyItemComponent> eq,
+    Map<String, DestinyItemInstanceComponent> ins, {
+    @required Sorting sortBy,
+    Order orderBy,
+  }) async {
+    final inventory = [...inv]..removeWhere((el) => el.expirationDate != null);
+    final List<DestinyItemComponent> itemComponents = [
+      ...inventory,
+      ...eq,
+    ];
+    final Map<String, DestinyItemInstanceComponent> instances = {...ins}
+      ..removeWhere((k, v) => v.cannotEquipReason == 1);
+
+    final List<int> hashes = itemComponents.map((el) => el.itemHash).toList();
+    final List<DestinyInventoryItemDefinition> itemDefinitions =
+        await dbRepository.getItemData(hashes);
+
+    final List<Item> items = [];
+
+    itemComponents.forEach((item) {
+      final DestinyItemInstanceComponent instance =
+          instances[item.itemInstanceId];
+      if (instance != null) {
+        final DestinyInventoryItemDefinition definition = itemDefinitions
+            .singleWhere((d) => d.hash == item.itemHash, orElse: () => null);
+        if (definition != null) {
+          items.add(Item.fromResponse(item, definition, instance));
+        }
+      }
+    });
+
+    return sortItems(
+      items,
+      by: sortBy,
+      orderedBy: orderBy,
+    );
+  }
+
+  Future<List<Item>> _computeItemList(
+    List<DestinyItemComponent> inv,
+    List<DestinyItemComponent> eq,
+    Map<String, DestinyItemInstanceComponent> ins, {
+    @required bucketHash,
+    @required int statHash,
+    Order orderBy,
+    int classHash,
+  }) async {
+    final inventory = [...inv]..removeWhere((el) => el.expirationDate != null);
+    final List<DestinyItemComponent> itemComponents = [
+      ...inventory,
+      ...eq,
+    ];
+    final List<String> mustRemove = [];
+    final Map<String, DestinyItemInstanceComponent> instances = {...ins}
+      // ..removeWhere((k, v) => v.cannotEquipReason == 1)
+      ..removeWhere((k, v) {
+        if (v.primaryStat?.statHash != statHash) {
+          mustRemove.add(k);
+          return true;
+        }
+        return false;
+      });
+
+    mustRemove.forEach((s) {
+      itemComponents.removeWhere((c) => c.itemInstanceId == s);
+    });
+
+    if (eq.isNotEmpty) {
+      itemComponents.retainWhere((el) => el.bucketHash == bucketHash);
+    }
+
+    final List<int> hashes = itemComponents.map((el) => el.itemHash).toList();
+    final List<DestinyInventoryItemDefinition> itemDefinitions =
+        await dbRepository.getItemData(hashes)
+          ..retainWhere((d) => d.inventory.bucketTypeHash == bucketHash);
+
+    final List<Item> items = [];
+
+    if (classHash != null) {
+      itemDefinitions.removeWhere(
+        (d) => !d.itemCategoryHashes.contains(classHash),
+      );
+    }
+
+    itemComponents.forEach((item) {
+      final DestinyItemInstanceComponent instance =
+          instances[item.itemInstanceId];
+
+      if (instance != null) {
+        final DestinyInventoryItemDefinition definition = itemDefinitions
+            .singleWhere((d) => d.hash == item.itemHash, orElse: () => null);
+        if (definition != null) {
+          items.add(Item.fromResponse(item, definition, instance));
+        }
+      }
+    });
+
+    items.sort(
+      (i1, i2) => safelyCompare.numbers(i2.primaryStat, i1.primaryStat),
+    );
+
+    return items;
   }
 }

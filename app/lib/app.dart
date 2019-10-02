@@ -1,3 +1,4 @@
+import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +8,7 @@ import 'package:ghost/blocs/progress/progress.dart';
 import 'package:ghost/repositories/api_repository.dart';
 import 'package:ghost/repositories/auth_repository.dart';
 import 'package:ghost/repositories/db_repository.dart';
+import 'package:ghost/utils.dart';
 import 'package:ghost/views/tabs/tabs.dart';
 import 'package:ghost/views/views.dart';
 import 'package:ghost/widgets/helpers/user_provider.dart';
@@ -70,8 +72,9 @@ class _AppState extends State<App> {
       ],
       child: CupertinoApp(
         debugShowCheckedModeBanner: false,
-        theme:
-            const CupertinoThemeData(primaryColor: CupertinoColors.activeBlue),
+        theme: const CupertinoThemeData(
+          primaryColor: CupertinoColors.activeBlue,
+        ),
         home: BlocBuilder<AuthEvent, AuthState>(
           bloc: _authBloc,
           builder: (BuildContext context, AuthState state) {
@@ -79,9 +82,11 @@ class _AppState extends State<App> {
               return SplashView();
             }
             if (state is AuthAuthenticated) {
+              final UserInfoCard card = state.membershipData.destinyMemberships
+                  .firstWhere((c) => c.membershipType == 2);
               return UserProvider(
                 credentials: state.credentials,
-                userInfoCard: state.membershipData.destinyMemberships[0],
+                userInfoCard: card,
                 child: Tabs(),
               );
             }

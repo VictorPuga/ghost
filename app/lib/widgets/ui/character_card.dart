@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:ghost/custom_theme.dart';
 import 'package:ghost/models/models.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets.dart';
@@ -14,21 +15,21 @@ class CharacterCard extends StatelessWidget {
   final VoidCallback onPressed;
   final String _raceName;
 
-  static const TextStyle _titleStyle = TextStyle(
-    color: Colors.white,
-    // fontSize: 20.0,
-  );
+  // static const TextStyle _titleStyle = TextStyle(
+  //   color: Colors.white,
+  //   // fontSize: 20.0,
+  // );
 
-  static const TextStyle _subtitleStyle = TextStyle(
-    color: Colors.white70,
-    // fontSize: 15.0,
-    fontWeight: FontWeight.w400,
-  );
+  // static const TextStyle _subtitleStyle = TextStyle(
+  //   color: Colors.white70,
+  //   // fontSize: 15.0,
+  //   fontWeight: FontWeight.w400,
+  // );
 
-  static const TextStyle _lightStyle = const TextStyle(
-    color: Colors.cyan,
-    // fontSize: 25.0,
-  );
+  // static const TextStyle _lightStyle = const TextStyle(
+  //   color: Colors.cyan,
+  //   // fontSize: 25.0,
+  // );
 
   CharacterCard({
     Key key,
@@ -118,10 +119,8 @@ class CharacterCard extends StatelessWidget {
                                   child: Container(
                                     child: FittedBox(
                                       fit: BoxFit.fill,
-                                      child: Text(
-                                        _className,
-                                        style: _titleStyle,
-                                      ),
+                                      child: Text(_className,
+                                          style: CustomTheme.titleStyle),
                                     ),
                                   ),
                                 ),
@@ -132,7 +131,7 @@ class CharacterCard extends StatelessWidget {
                                       fit: BoxFit.fill,
                                       child: Text(
                                         _raceName,
-                                        style: _subtitleStyle,
+                                        style: CustomTheme.subtitleStyle,
                                       ),
                                     ),
                                   ),
@@ -149,7 +148,7 @@ class CharacterCard extends StatelessWidget {
                                 fit: BoxFit.fill,
                                 child: Text(
                                   _light.toString(),
-                                  style: _lightStyle,
+                                  style: CustomTheme.lightStyle,
                                 ),
                               ),
                             ),

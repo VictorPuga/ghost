@@ -87,6 +87,7 @@ parseJson(String text) {
   return compute(_decode, text);
 }
 
+// ignore: camel_case_types
 abstract class safelyCompare {
   static int numbers(num n1, num n2) {
     if (n1 != null && n2 != null) {

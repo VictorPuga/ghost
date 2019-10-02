@@ -1,5 +1,5 @@
+import 'package:bungie_api/models/destiny_item_component.dart';
 import 'package:equatable/equatable.dart';
-import 'package:ghost/models/models.dart';
 
 abstract class DBEvent extends Equatable {
   DBEvent([List props = const []]) : super(props);
@@ -24,7 +24,7 @@ class GetManifest extends DBEvent {}
 class DeleteManifest extends DBEvent {}
 
 class GetItemData extends DBEvent {
-  final List<ItemComponent> items;
+  final List<DestinyItemComponent> items;
 
   GetItemData(this.items) : super([items]);
 

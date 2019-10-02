@@ -10,13 +10,13 @@ _defaultFunction(_) {}
 class ItemCard extends StatelessWidget {
   final Item item;
   final bool empty;
-  final String characterId;
+  // final String characterId;
   final void Function(Item) onPressed;
 
   ItemCard({
     Key key,
     this.item,
-    this.characterId,
+    // this.characterId,
     this.onPressed = _defaultFunction,
   })  : empty = item?.name == null,
         super(key: key);

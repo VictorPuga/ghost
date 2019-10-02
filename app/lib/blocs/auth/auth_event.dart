@@ -1,3 +1,4 @@
+import 'package:bungie_api/models/user_membership_data.dart';
 import 'package:ghost/models/models.dart';
 import 'package:meta/meta.dart';
 import 'package:equatable/equatable.dart';

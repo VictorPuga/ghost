@@ -1,5 +1,8 @@
-const btoa = (string) => Buffer.from(string, 'binary').toString('base64');
-const responseHTML = (data) => `
+export const // btoa
+  stringToBase64 = (str: string) =>
+    Buffer.from(str, 'binary').toString('base64');
+
+export const responseHTML = (data: any) => `
 <html>
 <head>
   <title>App</title>
@@ -13,9 +16,9 @@ const responseHTML = (data) => `
   <h1>You can close this window now...</h1>
 </body>
 </html>
-`
+`;
 
-const formatTokens = (data) => {
+export const formatTokens = (data: any) => {
   const {
     access_token,
     token_type,
@@ -28,11 +31,9 @@ const formatTokens = (data) => {
   return {
     accessToken: access_token,
     tokenType: token_type,
-    expirationDate: Date.now() + (expires_in * 1000),
+    expirationDate: Date.now() + expires_in * 1000,
     refreshToken: refresh_token,
-    refreshExpirationDate: Date.now() + (refresh_expires_in * 1000),
+    refreshExpirationDate: Date.now() + refresh_expires_in * 1000,
     membershipId: membership_id,
   };
-}
-
-module.exports = { btoa, responseHTML, formatTokens }
+};

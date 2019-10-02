@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:ghost/custom_theme.dart';
 import 'package:ghost/models/models.dart';
 import 'package:ghost/widgets/ui/item_card.dart';
 
@@ -35,11 +36,7 @@ class _ItemRowState extends State<ItemRow> {
                 padding: const EdgeInsets.only(top: 20, left: 10),
                 child: Text(
                   _section,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    height: 1,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: CustomTheme.headingStyle,
                 ),
               ),
             ),

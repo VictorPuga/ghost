@@ -1,3 +1,4 @@
+import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:ghost/models/models.dart';
 

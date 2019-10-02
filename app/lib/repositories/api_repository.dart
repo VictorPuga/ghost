@@ -1,24 +1,24 @@
 import 'dart:convert';
 
+import 'package:bungie_api/api/destiny2.dart';
+import 'package:bungie_api/helpers/http.dart';
+import 'package:bungie_api/models/destiny_character_response.dart';
+import 'package:bungie_api/models/destiny_item_action_request.dart';
+import 'package:bungie_api/models/destiny_profile_response.dart';
+import 'package:bungie_api/models/general_user.dart';
+import 'package:bungie_api/models/user_info_card.dart';
+import 'package:bungie_api/models/user_membership_data.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:ghost/keys.dart';
 import 'package:ghost/models/models.dart';
-import 'package:ghost/utils.dart';
 import 'package:meta/meta.dart';
 
+import 'package:ghost/clients.dart';
+import 'package:bungie_api/models/destiny_manifest.dart';
+import 'package:bungie_api/api/user.dart';
+
 class APIRepository {
-  static final Dio _dio = _initClient();
-
-  static Dio _initClient() {
-    final dio = Dio(BaseOptions(
-      baseUrl: 'https://www.bungie.net/platform',
-      headers: {'X-API-Key': apiKey},
-    ));
-    (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-    return dio;
-  }
-
   Credentials parseCredentials(String jsonString) {
     final Map<String, dynamic> response = jsonDecode(jsonString);
     final credentials = Credentials.fromJson(response);
@@ -33,25 +33,21 @@ class APIRepository {
   // }
 
   Future<DestinyManifest> getManifest() async {
-    final BungieResponse response = await _get('/Destiny2/Manifest');
-    final manifest = DestinyManifest.fromJson(response.data);
-    return manifest;
+    final r = await Destiny2.getDestinyManifest(destinyClient, {});
+    return r.response;
   }
 
   Future<GeneralUser> getUser(String membershipId) async {
-    final BungieResponse response =
-        await _get('/User/GetBungieNetUserById/$membershipId');
-    final user = GeneralUser.fromJson(response.data);
-    return user;
+    final r = await User.getBungieNetUserById(destinyClient, membershipId, {});
+    return r.response;
   }
 
   Future<UserMembershipData> getMembership(String accessToken) async {
-    final BungieResponse response = await _get(
-      '/User/GetMembershipsForCurrentUser',
-      accessToken: accessToken,
+    final r = await User.getMembershipDataForCurrentUser(
+      destinyClient,
+      {'Authorization': 'Bearer ' + accessToken},
     );
-    final membership = UserMembershipData.fromJson(response.data);
-    return membership;
+    return r.response;
   }
 
   Future<DestinyProfileResponse> getProfile({
@@ -59,16 +55,14 @@ class APIRepository {
     @required String accessToken,
     @required List<int> components,
   }) async {
-    final BungieResponse response = await _get(
-      '/Destiny2/${card.membershipType}/Profile/${card.membershipId}?components=${components.join(',')}',
-      // This gives something like ?components%5B%5D=200
-      // in version ^2.1.7 of Dio
-      // queryParameters: {'components': components},
-      accessToken: accessToken,
+    final r = await Destiny2.getProfile(
+      destinyClient,
+      components,
+      card.membershipId,
+      card.membershipType,
+      {'Authorization': 'Bearer ' + accessToken},
     );
-
-    final profile = DestinyProfileResponse.fromJson(response.data);
-    return profile;
+    return r.response;
   }
 
   Future<DestinyCharacterResponse> getCharacter({
@@ -77,15 +71,15 @@ class APIRepository {
     @required String characterId,
     @required List<int> components,
   }) async {
-    final BungieResponse response = await _get(
-      '/Destiny2/${card.membershipType}/Profile/${card.membershipId}/Character/$characterId?components=${components.join(',')}',
-      // This gives something like ?components%5B%5D=200
-      // in version ^2.1.7 of Dio
-      // queryParameters: {'components': components},
-      accessToken: accessToken,
+    final r = await Destiny2.getCharacter(
+      destinyClient,
+      characterId,
+      components,
+      card.membershipId,
+      card.membershipType,
+      {'Authorization': 'Bearer ' + accessToken},
     );
-    final characterResponse = DestinyCharacterResponse.fromJson(response.data);
-    return characterResponse;
+    return r.response;
   }
 
   Future<int> equipItem({
@@ -95,66 +89,77 @@ class APIRepository {
     @required String accessToken,
   }) async {
     try {
-      final BungieResponse res = await _post(
-        '/Destiny2/Actions/Items/EquipItem/', // <-- Must have trailing slash!
-        accessToken: accessToken,
-        data: {
-          'itemId': id,
-          'characterId': characterId,
-          'membershipType': membershipType,
-        },
+      // final res =
+      await Destiny2.equipItem(
+        destinyClient,
+        DestinyItemActionRequest.fromJson(
+          {
+            'itemId': id,
+            'characterId': characterId,
+            'membershipType': membershipType,
+          },
+        ),
+        {'Authorization': 'Bearer ' + accessToken},
       );
     } on DioError catch (e) {
       if (e.type == DioErrorType.RESPONSE) {
-        final res = BungieResponse.fromJson(jsonDecode(e.response.toString()));
-        return res.errorCode;
+        // final res = BungieResponse.fromJson(jsonDecode(e.response.toString()));
+        // return res.errorCode;
+        return jsonDecode(e.response.toString())['ErrorCode'];
       }
     }
     return 1;
   }
 
-  Future<BungieResponse> _get(
-    String path, {
-    String accessToken,
-    // Map<String, dynamic> queryParameters,
-  }) async {
-    final Map<String, dynamic> headers = {};
-    if (accessToken != null) {
-      headers['Authorization'] = 'Bearer $accessToken';
-    }
-
-    final Response res = await _dio.get(
-      path,
-      // queryParameters: queryParameters,
-      options: Options(headers: headers),
-    );
-    final BungieResponse response = _buildResponse(res);
-    return response;
+  Future<List> getSets(userId) async {
+    // print();
+    await airtableClient.request(HttpClientConfig('GET', '/table_1'));
+    return [];
   }
 
-  Future<BungieResponse> _post(
-    String path, {
-    dynamic data,
-    String accessToken,
-  }) async {
-    final Response res = await _dio.post(
-      path,
-      data: data,
-      options: Options(
-        headers: {'Authorization': 'Bearer $accessToken'},
-      ),
+  Future<void> createSet(
+    String userId,
+    String name,
+    int classCategoryHash,
+    weapons,
+    armor,
+  ) async {
+    // print();
+    await airtableClient.request(
+      HttpClientConfig('POST', '/table_1', body: {
+        'records': [
+          {
+            'fields': {
+              'userId': userId,
+              'classCategoryHash': classCategoryHash,
+              'items': jsonEncode({
+                'weapons': weapons,
+                'armor': armor,
+              }),
+            },
+          },
+        ],
+      }),
     );
-    final BungieResponse response = _buildResponse(res);
-    return response;
   }
 
-  BungieResponse _buildResponse(Response res) {
-    final response = BungieResponse.fromJson(res.data);
-    // Status code is always 200 (for now)
-    if (res.statusCode == 200 && response.errorCode == 1) {
-      return response;
-    } else {
-      throw response;
-    }
+  Future<void> deleteSets(List<String> userId) async {
+    // print();
+    // await airtableClient.request(
+    //   HttpClientConfig('POST', '/table_1', body: {
+    //     'records': [
+    //       {
+    //         'fields': {
+    //           'userId': userId,
+    //           'classCategoryHash': classCategoryHash,
+    //           'items': jsonEncode({
+    //             'weapons': weapons,
+    //             'armor': armor,
+    //           }),
+    //         },
+    //       },
+    //     ],
+    //   }),
+    // );
   }
 }

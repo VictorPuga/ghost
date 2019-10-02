@@ -1,21 +1,23 @@
+import http from 'http';
+import express from 'express';
+import bodyParser from 'body-parser';
+import path from 'path';
+import cors from 'cors';
+import axios from 'axios';
 
-var http = require('http');
-var express = require('express');
-var bodyParser = require('body-parser');
-var path = require('path');
-var cors = require('cors');
-const axios = require('axios');
+import { stringToBase64, responseHTML, formatTokens } from './utilities';
 
-const { btoa, responseHTML, formatTokens } = require('./utilities');
-// require('dotenv').config()
+// import dotenv from 'dotenv'
+// dotenv.config()
+
 const { apiKey, clientId, clientSecret } = process.env;
 
 const configs = {
   method: 'POST',
   url: 'https://www.bungie.net/platform/app/oauth/token/',
   headers: {
-    'Accept': 'application/json',
-    'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret),
+    Accept: 'application/json',
+    Authorization: 'Basic ' + stringToBase64(clientId + ':' + clientSecret),
     'Content-Type': 'application/x-www-form-urlencoded',
   },
 };
@@ -27,11 +29,11 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 
-app.get('/oauth/redirect', function (request, response) {
+app.get('/oauth/redirect', function(request, response) {
   const { code } = request.query;
   axios({
     ...configs,
-    data: `grant_type=authorization_code&code=${code}`
+    data: `grant_type=authorization_code&code=${code}`,
   })
     .then(({ data }) => {
       const tokens = formatTokens(data);
@@ -41,22 +43,25 @@ app.get('/oauth/redirect', function (request, response) {
     })
     .catch(e => {
       // console.log(e);
-      if (e.response.headers['content-type'] = 'text/html; charset=UTF-8') {
+      if ((e.response.headers['content-type'] = 'text/html; charset=UTF-8')) {
         response.setHeader('Content-Type', 'text/html');
         response.send(e.response.data);
-      }
-      else {
+      } else {
         response.status(e.response.status);
-        response.json({ code: e.response.status, message: e.response.statusText, error: e.response.data });
+        response.json({
+          code: e.response.status,
+          message: e.response.statusText,
+          error: e.response.data,
+        });
       }
     });
 });
 
-app.post('/oauth/refresh', function (request, response) {
+app.post('/oauth/refresh', function(request, response) {
   const { token } = request.body;
   axios({
     ...configs,
-    data: `grant_type=refresh_token&refresh_token=${token}`
+    data: `grant_type=refresh_token&refresh_token=${token}`,
   })
     .then(({ data }) => {
       const tokens = formatTokens(data);
@@ -66,18 +71,21 @@ app.post('/oauth/refresh', function (request, response) {
     })
     .catch(e => {
       // console.log(e)
-      if (e.response.headers['content-type'] = 'text/html; charset=UTF-8') {
+      if ((e.response.headers['content-type'] = 'text/html; charset=UTF-8')) {
         response.setHeader('Content-Type', 'text/html');
         response.send(e.response.data);
-      }
-      else {
+      } else {
         response.status(e.response.status);
-        response.json({ code: e.response.status, message: e.response.statusText, error: e.response.data });
+        response.json({
+          code: e.response.status,
+          message: e.response.statusText,
+          error: e.response.data,
+        });
       }
-    })
+    });
 });
 
-app.get('/', function (request, response) {
+app.get('/', function(request, response) {
   response.setHeader('Content-Type', 'application/json');
   response.status(200);
   response.json({ response: 'nothing to see here' });

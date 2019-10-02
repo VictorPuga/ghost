@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -116,7 +117,6 @@ class _CharactersViewState extends State<CharacterView> {
   }
 
   void _onPressed(Item item) {
-    print(item.name);
     _apiBloc.dispatch(
       EquipItem(
         id: item.itemInstanceId,
@@ -226,12 +226,17 @@ class _CharacterSectionState extends State<CharacterSection> {
                       controller: _refreshController,
                       onRefresh: _onRefresh,
                       child: SafeArea(
-                        child: Row(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            ItemCollection(
-                              characterId: _characterId,
-                              data: data[i],
-                              onPressed: _onPressed,
+                            Row(
+                              children: [
+                                ItemCollection(
+                                  characterId: _characterId,
+                                  data: data[i],
+                                  onPressed: _onPressed,
+                                ),
+                              ],
                             ),
                           ],
                         ),

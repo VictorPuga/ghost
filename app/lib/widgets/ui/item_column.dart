@@ -6,35 +6,27 @@ import 'package:ghost/widgets/ui/add_item.dart';
 import 'package:ghost/widgets/ui/item_card.dart';
 import 'package:ghost/widgets/ui/item_list.dart';
 
-class ItemColumn extends StatefulWidget {
-  final int itemCount;
+class ItemColumn extends StatelessWidget {
   final bool disabled;
   final List<int> bucketHashes;
+  final String characterId;
+  final int statHash;
+  final int classCategoryHash;
+  final List data;
+  final void Function(Item, int) onSelect;
+
   ItemColumn({
     Key key,
-    this.itemCount = 3,
     @required this.bucketHashes,
     this.disabled = false,
-  })  : assert(
-          bucketHashes.length == itemCount,
-          'The `bucketHashes` must be the same as the items displayed',
-        ),
-        super(key: key);
+    this.characterId,
+    this.statHash,
+    this.classCategoryHash,
+    this.data,
+    this.onSelect,
+  }) : super(key: key);
 
-  @override
-  _ItemColumnState createState() => _ItemColumnState();
-}
-
-class _ItemColumnState extends State<ItemColumn> {
-  List _selectedItems;
-  int get _itemCount => widget.itemCount;
-  List<int> get _bucketHashes => widget.bucketHashes;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedItems = List.filled(widget.itemCount, null);
-  }
+  int get _itemCount => bucketHashes.length;
 
   @override
   Widget build(BuildContext context) {
@@ -55,30 +47,37 @@ class _ItemColumnState extends State<ItemColumn> {
   }
 
   Widget _item(BuildContext ctx, int i) {
-    final bool empty = _selectedItems[i] == null;
+    final bool empty = data[i] == null;
     return Expanded(
       flex: 2,
       child: empty
           ? AddItem(onPressed: () async => await _navigate(ctx, i))
-          : ItemCard(onPressed: (_) async => await _navigate(ctx, i)),
+          : ItemCard(
+              item: data[i],
+              onPressed: (_) async => await _navigate(ctx, i),
+            ),
     );
   }
 
   Future<void> _navigate(BuildContext context, int i) async {
     final dbRepository = DBRepository();
-    final data = await dbRepository.getBucketData([_bucketHashes[i]]);
-    final Item selected = await Navigator.of(context).push<Item>(
+    final data = await dbRepository.getBucketData([bucketHashes[i]]);
+
+    final Item selectedItem = await Navigator.of(context).push<Item>(
       CupertinoPageRoute(
         builder: (_) => ItemList(
           title: data.values.first.name,
-          onSelect: (BuildContext c, Map s) {
+          bucket: data.values.toList()[0],
+          characterId: characterId,
+          statHash: statHash,
+          classCategoryHash: classCategoryHash,
+          onSelect: (BuildContext c, Item s) {
             Navigator.of(c).pop(s);
           },
         ),
       ),
     );
-    print(selected);
+
+    onSelect(selectedItem, i);
   }
 }
-
-class ItemColumnController {}

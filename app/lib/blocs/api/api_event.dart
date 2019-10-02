@@ -1,5 +1,6 @@
+import 'package:bungie_api/enums/destiny_component_type_enum.dart';
+import 'package:bungie_api/models/user_info_card.dart';
 import 'package:equatable/equatable.dart';
-import 'package:ghost/models/models.dart';
 import 'package:meta/meta.dart';
 
 import 'package:ghost/utils.dart';
@@ -57,7 +58,7 @@ class GetProfile extends APIEvent {
   GetProfile({
     @required this.card,
     @required this.accessToken,
-    this.components = const [DestinyComponentType.characters],
+    this.components = const [DestinyComponentType.Characters],
   }) : super([card, accessToken, components]);
 
   @override
@@ -134,17 +135,39 @@ class EquipItem extends APIEvent {
   }''';
 }
 
+class GetSets extends APIEvent {
+  final UserInfoCard card;
+  final String accessToken;
+
+  GetSets({
+    @required this.card,
+    @required this.accessToken,
+  }) : super([card, accessToken]);
+
+  @override
+  String toString() => '''GetSets {
+      card: $card, 
+      accessToken: ${accessToken.substring(0, 40)}... 
+    }''';
+}
+
 class GetAllItems extends APIEvent {
   final UserInfoCard card;
   final String accessToken;
   final int bucketHash;
   final Order orderBy;
+  final String characterId;
+  final int statHash;
+  final int classCategoryHash;
 
   GetAllItems({
     @required this.card,
     @required this.accessToken,
     @required this.bucketHash,
+    this.characterId,
     this.orderBy = Order.defaultOrder,
+    this.statHash,
+    this.classCategoryHash,
   })  : assert(bucketHash != null),
         assert(orderBy != null),
         super([
@@ -152,6 +175,7 @@ class GetAllItems extends APIEvent {
           accessToken,
           bucketHash,
           orderBy,
+          characterId,
         ]);
 
   @override
@@ -160,6 +184,7 @@ class GetAllItems extends APIEvent {
     accessToken: ${accessToken.substring(0, 40)}... 
     bucketHash: $bucketHash,
     orderBy: $orderBy,
+    characterId: $characterId,
   }''';
 }
 // class RefreshToken extends APIEvent {

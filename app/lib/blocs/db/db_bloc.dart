@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:bungie_api/models/destiny_manifest.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meta/meta.dart';
@@ -6,7 +7,6 @@ import 'package:bloc/bloc.dart';
 import 'package:ghost/repositories/db_repository.dart';
 import 'package:ghost/repositories/api_repository.dart';
 import 'package:ghost/blocs/auth/auth.dart';
-import 'package:ghost/models/models.dart';
 import 'package:version/version.dart';
 
 import './db.dart';

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive.dart';
+import 'package:bungie_api/models/destiny_character_component.dart';
+import 'package:bungie_api/models/destiny_inventory_item_definition.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ghost/blocs/progress/progress.dart';
@@ -10,6 +12,8 @@ import 'package:ghost/models/models.dart';
 import 'package:ghost/utils.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
+import 'package:bungie_api/models/destiny_manifest.dart';
 
 class DBRepository {
   final ProgressBloc progressBloc;
@@ -28,7 +32,7 @@ class DBRepository {
   static Dio _initClient() {
     final dio = Dio(BaseOptions(
       baseUrl: 'https://www.bungie.net',
-      headers: {'X-API-Key': apiKey},
+      headers: {'X-API-Key': bungieAPIKey},
     ));
     (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
     return dio;
@@ -76,7 +80,6 @@ class DBRepository {
       print('Error:\n$e');
     } finally {
       if (error == null) {
-        print('end creating');
       } else {}
     }
   }
@@ -95,7 +98,7 @@ class DBRepository {
     });
   }
 
-  Future<List<ItemDefinition>> getItemData(
+  Future<List<DestinyInventoryItemDefinition>> getItemData(
     List<int> itemHashes,
   ) async {
     final List<int> ids = itemHashes.map((hash) => unHash(hash)).toList();
@@ -108,8 +111,9 @@ class DBRepository {
       whereArgs: ids,
     );
 
-    final List<ItemDefinition> definitions =
-        results.map((d) => ItemDefinition.fromJson(d['json'])).toList();
+    final List<DestinyInventoryItemDefinition> definitions = results
+        .map((d) => DestinyInventoryItemDefinition.fromJson(d['json']))
+        .toList();
 
     return definitions;
   }
@@ -137,22 +141,30 @@ class DBRepository {
   }
 
   Future<List<CharacterData>> getCharacterData(
-    List<CharacterComponent> characters,
+    List<DestinyCharacterComponent> characters,
   ) async {
     final List<CharacterData> characterData = [];
     for (final c in characters) {
-      final res1 = await _query('DestinyClassDefinition',
-          where: 'id = ?', whereArgs: [unHash(c.classHash)]);
-      final res2 = await _query('DestinyRaceDefinition',
-          where: 'id = ?', whereArgs: [unHash(c.raceHash)]);
+      final res1 = await _query(
+        'DestinyClassDefinition',
+        where: 'id = ?',
+        whereArgs: [unHash(c.classHash)],
+      );
+      final res2 = await _query(
+        'DestinyRaceDefinition',
+        where: 'id = ?',
+        whereArgs: [unHash(c.raceHash)],
+      );
 
-      final className = res1.first['json']['genderedClassNamesByGenderHash']
-          ['${c.genderHash}'];
+      final String className = res1.first['json']
+          ['genderedClassNamesByGenderHash']['${c.genderHash}'];
 
-      final raceName = res2.first['json']['genderedRaceNamesByGenderHash']
-          ['${c.genderHash}'];
-      characterData
-          .add(CharacterData(className: className, raceName: raceName));
+      final String raceName = res2.first['json']
+          ['genderedRaceNamesByGenderHash']['${c.genderHash}'];
+
+      characterData.add(
+        CharacterData(className: className, raceName: raceName),
+      );
     }
 
     return characterData;
@@ -221,7 +233,6 @@ class DBRepository {
       where: where,
       whereArgs: whereArgs,
     );
-
     final List<Map<String, dynamic>> newList = [];
 
     results.forEach((r) {
@@ -232,15 +243,6 @@ class DBRepository {
       newList.add(result);
     });
 
-    // await Future.forEach<Map<String, dynamic>>(results, (r) async {
-    //   final result = {
-    //     'id': r['id'],
-    //     'json': await parseJson(r['json']),
-    //   };
-    //   newList.add(result);
-    // });
-
-    // print('done');
     return newList;
   }
 }

@@ -20,8 +20,9 @@ class RefreshHeader extends CustomHeader {
           padding: const EdgeInsets.only(top: 30.0),
           child: CupertinoActivityIndicator(),
         );
+      default:
+        // Never gets executed
+        return Container();
     }
-    // Never gets executed
-    return Container();
   }
 }

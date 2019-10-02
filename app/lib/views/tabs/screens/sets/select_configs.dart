@@ -1,13 +1,17 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:ghost/utils.dart';
-import 'package:ghost/views/tabs/screens/sets/select-items.dart';
+import 'package:ghost/custom_theme.dart';
+import 'package:ghost/models/models.dart';
+import 'package:ghost/views/tabs/screens/sets/select_items.dart';
 
 class SelectConfigs extends StatefulWidget {
+  final List<String> characterIds;
+
   SelectConfigs({
     Key key,
+    this.characterIds,
   }) : super(key: key);
+
   @override
   _SelectConfigsState createState() => _SelectConfigsState();
 }
@@ -16,15 +20,12 @@ class _SelectConfigsState extends State<SelectConfigs> {
   TextEditingController _nameController;
   int _selected = 3;
 
+  List<String> get _characterIds => widget.characterIds;
+
   @override
   void initState() {
     _nameController = TextEditingController(text: '');
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
   }
 
   @override
@@ -37,17 +38,17 @@ class _SelectConfigsState extends State<SelectConfigs> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text('New Set'),
+        middle: const Text('New Set'),
       ),
       child: SafeArea(
         child: Stack(
-          children: <Widget>[
+          children: [
             NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification notif) {
                 if (notif is UserScrollNotification) {
                   FocusScope.of(context).requestFocus(FocusNode());
                 }
-                return;
+                return true;
               },
               child: ListView(
                 padding: const EdgeInsets.all(10),
@@ -57,12 +58,12 @@ class _SelectConfigsState extends State<SelectConfigs> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Name'),
+                      const Text('Name', style: CustomTheme.headingStyle),
                       CupertinoTextField(
                         placeholder: 'My armor',
                         controller: _nameController,
                       ),
-                      const Text('Class'),
+                      const Text('Class', style: CustomTheme.headingStyle),
                       CupertinoSegmentedControl(
                         groupValue: _selected,
                         children: const {
@@ -87,7 +88,7 @@ class _SelectConfigsState extends State<SelectConfigs> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.max,
-                children: <Widget>[
+                children: [
                   Expanded(
                     child: Container(),
                   ),
@@ -105,7 +106,14 @@ class _SelectConfigsState extends State<SelectConfigs> {
                         CupertinoPageRoute(
                           builder: (_) => SelectItems(
                             name: _nameController.text,
-                            type: _selected,
+                            // type: _selected,
+                            characterId: [..._characterIds, null][_selected],
+                            classCategoryHash: [
+                              DestinyCategoryHash.warlock,
+                              DestinyCategoryHash.titan,
+                              DestinyCategoryHash.hunter,
+                              null
+                            ][_selected],
                           ),
                         ),
                       );

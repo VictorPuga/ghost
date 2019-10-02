@@ -9,7 +9,7 @@ class Tabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
-        currentIndex: 1,
+        currentIndex: 0,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             title: Text('Sets'),

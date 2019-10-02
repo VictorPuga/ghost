@@ -1,3 +1,5 @@
+import 'package:bungie_api/models/destiny_profile_response.dart';
+import 'package:bungie_api/models/user_membership_data.dart';
 import 'package:equatable/equatable.dart';
 import 'package:ghost/models/models.dart';
 
@@ -78,7 +80,7 @@ class APICharacter extends APIState {
   final List<Item> inventory;
   final List<Item> equipment;
 
-  final List<Item> items;
+  // final List<Item> items;
   final SortedItems sortedItems;
   final error;
 
@@ -86,14 +88,14 @@ class APICharacter extends APIState {
     this.character,
     this.inventory,
     this.equipment,
-    this.items,
+    // this.items,
     this.sortedItems,
     this.error,
   }) : super([
           character,
           inventory,
           equipment,
-          items,
+          // items,
           sortedItems,
         ]);
 
@@ -102,19 +104,38 @@ class APICharacter extends APIState {
     character: $character,
     inventory: $inventory,
     equipment: $equipment,
-    items: $items,
+
     sortedItems: $sortedItems,
     error: $error,
   }''';
 }
 
+class APISets extends APIState {
+  final List<String> characterIds;
+  final sets;
+
+  APISets({
+    this.characterIds,
+    this.sets,
+  }) : super([characterIds, sets]);
+
+  @override
+  String toString() => '''APISets {
+    characters: $characterIds,
+    sets: $sets,
+  }''';
+}
+
 class APIAllItems extends APIState {
   final SortedItems<Character> sortedItems;
+  final List<Item> vaultItems;
 
-  APIAllItems({this.sortedItems}) : super([sortedItems]);
+  APIAllItems({this.sortedItems, this.vaultItems})
+      : super([sortedItems, vaultItems]);
 
   @override
   String toString() => '''APIAllItems {
     sortedItems: ${sortedItems.toJsonString()},
+    vaultItems: $vaultItems,
   }''';
 }
