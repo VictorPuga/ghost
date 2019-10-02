@@ -1,5 +1,5 @@
 {
     "scripts": {
-        "push": "git push && git push heroku master "
+        "push": "git push && git push heroku master"
     }
 }
