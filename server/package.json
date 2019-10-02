@@ -3,7 +3,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "tsc": "tsc",
-    "deploy": "cd .. && git subtree push --prefix server heroku master"
+    "deploy": "cd .. && git push heroku `git subtree split --prefix server master`:master --force"
   },
   "dependencies": {
     "axios": "^0.18.1",
