@@ -1,3 +1,4 @@
 node_modules
 .env
-dist
+# the /dist folder should not de ignored in order to be pushed to heroku
+# dist 
