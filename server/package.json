@@ -2,8 +2,8 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "push": "git push && git push heroku master",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "deploy": "cd .. && git subtree push --prefix server heroku master"
   },
   "dependencies": {
     "axios": "^0.18.1",
