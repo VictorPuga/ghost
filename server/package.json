@@ -2,8 +2,9 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "tsc": "tsc",
-    "deploy": "cd .. && git push heroku `git subtree split --prefix server master`:master --force"
+    "build": "tsc",
+    "deploy": "cd .. && git push heroku `git subtree split --prefix server master`:master --force",
+    "postinstall": "npm run build"
   },
   "dependencies": {
     "axios": "^0.18.1",
