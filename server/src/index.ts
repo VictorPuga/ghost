@@ -1,7 +1,6 @@
 import http from 'http';
 import express from 'express';
 import bodyParser from 'body-parser';
-import path from 'path';
 import cors from 'cors';
 import axios from 'axios';
 
@@ -24,7 +23,6 @@ const configs = {
 
 var app = express();
 
-// app.use(express.static(path.join(__dirname, 'src')))
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
