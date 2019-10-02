@@ -88,7 +88,7 @@ app.post('/oauth/refresh', function(request, response) {
 app.get('/', function(request, response) {
   response.setHeader('Content-Type', 'application/json');
   response.status(200);
-  response.json({ response: 'nothing to see here', code: undefined });
+  response.json({ response: 'nothing to see here' });
 });
 
 var server = http.createServer(app);
