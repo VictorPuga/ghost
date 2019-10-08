@@ -39,12 +39,10 @@ packages:
   bungie_api:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "41849f667fe5cda7eb1fa2d6963f7fe8ce8561ee"
-      url: "https://github.com/marquesinijatinha/bungie-api-dart"
-    source: git
-    version: "3.0.0"
+      path: "/Users/victormanuelpugaruiz/Folders/Gits/bungie-api-dart"
+      relative: false
+    source: path
+    version: "2.3.5+5"
   cached_network_image:
     dependency: "direct main"
     description:
@@ -59,6 +57,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.2"
+  cloud_firestore:
+    dependency: "direct main"
+    description:
+      name: cloud_firestore
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.12.9+4"
   collection:
     dependency: transitive
     description:
@@ -108,6 +113,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.6"
+  firebase_core:
+    dependency: transitive
+    description:
+      name: firebase_core
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.0+9"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -299,7 +311,7 @@ packages:
     source: hosted
     version: "1.1.6"
   uuid:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: uuid
       url: "https://pub.dartlang.org"

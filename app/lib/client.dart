@@ -47,55 +47,16 @@ class _DestinyClient extends HttpClient {
           headers: config.headers ?? {},
         ),
       );
-      // } on DioError catch (e) {
-      //   if (e.type == DioErrorType.RESPONSE) {
-      //     // print(e.error);
-      //     // print(e.stackTrace);
-      //     return HttpResponse(e.response.data, e.response.statusCode);
-      //   }
-    } catch (e) {}
-
-    return HttpResponse(r.data, r.statusCode);
-  }
-}
-
-class _AirtableClient extends HttpClient {
-  static final Dio _dio = _initClient();
-
-  static Dio _initClient() {
-    final dio = Dio(BaseOptions(
-      baseUrl: 'https://api.airtable.com/v0/' + airtableSetId,
-      headers: {
-        'Authorization': 'Bearer ' + airtableAPIKey,
-        'Content-Type': 'application/json'
-      },
-    ));
-    (dio.transformer as DefaultTransformer).jsonDecodeCallback = parseJson;
-    return dio;
-  }
-
-  @override
-  Future<HttpResponse> request(HttpClientConfig config) async {
-    Response r;
-    try {
-      r = await _dio.request(
-        config.url + joinParams(config.params),
-        data: config.body,
-        options: Options(
-          method: config.method,
-          headers: config.headers ?? {},
-        ),
-      );
     } on DioError catch (e) {
       if (e.type == DioErrorType.RESPONSE) {
         // print(e.error);
         // print(e.stackTrace);
-        return HttpResponse(e.response.data, e.response.statusCode);
+        throw HttpResponse(e.response.data, e.response.statusCode);
       }
     }
+
     return HttpResponse(r.data, r.statusCode);
   }
 }
 
 final destinyClient = _DestinyClient();
-final airtableClient = _AirtableClient();

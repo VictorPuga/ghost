@@ -1,4 +1,4 @@
-package com.example.ghost;
+package com.victorpuga.ghost;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

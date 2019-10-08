@@ -221,9 +221,12 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       final List<String> characterIds =
           profileResponse.characters.data.keys.toList();
 
+      final List<ItemSet> sets =
+          await apiRepository.getSets(event.card.membershipId);
+
       yield APISets(
         characterIds: characterIds,
-        sets: [],
+        sets: sets,
       );
     }
 

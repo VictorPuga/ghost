@@ -39,9 +39,11 @@ dependencies:
   screen: ^0.0.5
   # flutter_platform_widgets: ^0.12.0
   bungie_api: # the docs say bungie_api_dart
-    git: https://github.com/marquesinijatinha/bungie-api-dart
-    version: 3.0.0
-    # path: /Users/victormanuelpugaruiz/Folders/Gits/bungie-api-dart
+    # git: https://github.com/marquesinijatinha/bungie-api-dart
+    # version: 3.0.0
+    path: /Users/victormanuelpugaruiz/Folders/Gits/bungie-api-dart
+  cloud_firestore: ^0.12.9+4
+  uuid: ^2.0.2
 
 dev_dependencies:
   flutter_test:

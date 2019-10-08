@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "242765500661",
+    "firebase_url": "https://ghost-companion-79b03.firebaseio.com",
+    "project_id": "ghost-companion-79b03",
+    "storage_bucket": "ghost-companion-79b03.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242765500661:android:7b1b2ccb4259b1686f75bc",
+        "android_client_info": {
+          "package_name": "com.victorpuga.ghost"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "242765500661-ipcqqlrh8nshji4tfpd3pgqv5diiff5b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCs7WvCRdf9fiuRhg6VtzGtDKHcwy7feDo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "242765500661-ipcqqlrh8nshji4tfpd3pgqv5diiff5b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

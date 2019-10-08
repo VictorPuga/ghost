@@ -112,7 +112,7 @@ class APICharacter extends APIState {
 
 class APISets extends APIState {
   final List<String> characterIds;
-  final sets;
+  final List<ItemSet> sets;
 
   APISets({
     this.characterIds,

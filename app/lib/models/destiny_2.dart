@@ -84,9 +84,10 @@ class Item extends BaseModel {
   ) {
     final int damage = null; //instance.damageType;
     final String name = definition.displayProperties.name;
-    final String icon = name != 'Classified'
-        ? _assetPrefix + definition.displayProperties.icon
-        : 'http://www.odgw.com/forums/uploads/gallery/album_25/gallery_3209_25_129107.png';
+    final String icon = (name == 'Classified' ||
+            definition.displayProperties.icon == null)
+        ? 'http://www.odgw.com/forums/uploads/gallery/album_25/gallery_3209_25_129107.png'
+        : _assetPrefix + definition.displayProperties.icon;
     final primaryStat = instance.primaryStat?.value;
     int classRequired;
     if (definition.itemCategoryHashes.contains(DestinyCategoryHash.warlock)) {
@@ -116,6 +117,23 @@ class Item extends BaseModel {
     );
   }
 
+  factory Item.fromJson(Map<String, dynamic> res) => Item(
+        name: res['name'],
+        itemHash: res['itemHash'],
+        itemInstanceId: res['itemInstanceId'],
+        bucketHash: res['bucketHash'],
+        icon: res['icon'],
+        primaryStat: res['primaryStat'],
+        description: res['description'],
+        typeHash: res['typeHash'],
+        typeName: res['typeName'],
+        subTypeHash: res['subTypeHash'],
+        isEquiped: res['isEquiped'],
+        damageType: res['damageType'],
+        itemCategoryHashes: res['itemCategoryHashes'],
+        classRequired: res['classRequired'],
+      );
+
   @override
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -126,9 +144,12 @@ class Item extends BaseModel {
         'primaryStat': primaryStat,
         'description': description,
         'typeHash': typeHash,
+        'typeName': typeName,
         'subTypeHash': subTypeHash,
         'isEquiped': isEquiped,
         'damageType': damageType,
+        'itemCategoryHashes': itemCategoryHashes,
+        'classRequired': classRequired,
         'hasPrimaryStat': hasPrimaryStat,
       };
 

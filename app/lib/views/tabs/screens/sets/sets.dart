@@ -88,26 +88,38 @@ class _SetsState extends State<Sets> {
         child: BlocBuilder<APIEvent, APIState>(
           bloc: _apiBloc,
           builder: (BuildContext context, APIState state) {
-            if (state is APISets) {
-              _refreshController.refreshCompleted();
-            }
+            List<ItemSet> sets = [];
             if (state.hasError) {
               _refreshController.refreshFailed();
+              // return Container(child: const Text('error'));
+            } else if (state is InitialAPIState ||
+                (state is APILoading && state.prevState == null)) {}
+
+            if (state is APILoading<APISets>) {
+              sets = state.prevState.sets;
+            }
+            if (state is APISets) {
+              _refreshController.refreshCompleted();
+              sets = state.sets;
             }
 
+            // return _buildItem(context, state, i);
+
+            print(state.hasError);
             return SmartRefresher(
               enablePullDown: true,
               header: RefreshHeader(),
               controller: _refreshController,
               onRefresh: _onRefresh,
               child: ListView.builder(
-                itemCount: 3,
+                itemCount: sets.length,
                 itemBuilder: (BuildContext context, int i) {
                   if (state is InitialAPIState ||
                       (state is APILoading && state.prevState == null)) {
                     return Container();
                   }
                   if (state.hasError) {
+                    return Text('error');
                     return i == 0 ? Text('error') : Container();
                   }
                   if (state is APILoading) {
@@ -123,16 +135,27 @@ class _SetsState extends State<Sets> {
     );
   }
 
-  _onRefresh() {
+  _onRefresh() async {
     _apiBloc.dispatch(
       GetSets(
         accessToken: _credentials.accessToken,
         card: _infoCard,
       ),
     );
+    // final a = await APIRepository().test();
+    // print(a);
+    // _refreshController.refreshCompleted();
   }
 
-  _buildItem(_, __, ___) {
-    return Container();
+  _buildItem(BuildContext context, APISets state, int i) {
+    final itemSet = state.sets[i];
+    return CupertinoButton(
+      child: Container(
+        child: Text(itemSet.name ?? ''),
+      ),
+      onPressed: () {
+        // print(itemSet.setId);
+      },
+    );
   }
 }

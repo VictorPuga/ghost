@@ -98,13 +98,21 @@ class _SelectItemsState extends State<SelectItems> {
   }
 
   _save(BuildContext context) async {
-    await APIRepository().createSet(
-      _userId,
-      _name,
-      _classCategoryHash,
-      _data[0],
-      _data[1],
-    );
-    // Navigator.of(context).popUntil((Route route) => route.isFirst);
+    bool hasError = false;
+    try {
+      await APIRepository().createSet(
+        _userId,
+        _name,
+        _classCategoryHash,
+        _data[0],
+        _data[1],
+      );
+    } catch (e) {
+      hasError = true;
+    }
+
+    if (!hasError) {
+      Navigator.of(context).popUntil((Route route) => route.isFirst);
+    } else {}
   }
 }

@@ -88,14 +88,8 @@ class _ItemListState extends State<ItemList> {
               _refreshController.refreshCompleted();
               itemCount = state.sortedItems.categories.length + 1;
             }
-            if (state is APILoading &&
-                state.prevState != null &&
-                state.prevState is APIAllItems) {
-              itemCount = (state.prevState as APIAllItems)
-                      .sortedItems
-                      .categories
-                      .length +
-                  1;
+            if (state is APILoading<APIAllItems> && state.prevState != null) {
+              itemCount = state.prevState.sortedItems.categories.length + 1;
             }
 
             if (state.hasError) {
@@ -116,13 +110,12 @@ class _ItemListState extends State<ItemList> {
                       (state is APILoading && state.prevState == null)) {}
                   if (state.hasError) {}
 
-                  if (state is APILoading &&
-                      state.prevState != null &&
-                      state.prevState is APIAllItems) {
+                  if (state is APILoading<APIAllItems> &&
+                      state.prevState != null) {
                     if (i == itemCount - 1) {
-                      items = (state.prevState as APIAllItems).vaultItems;
+                      items = state.prevState.vaultItems;
                     } else {
-                      final prevState = state.prevState as APIAllItems;
+                      final prevState = state.prevState;
                       final MapEntry<int, Character> c =
                           prevState.sortedItems.categories.entries.toList()[i];
                       category = c.value;
