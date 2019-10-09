@@ -82,33 +82,36 @@ app.get('/oauth/redirect', async function(request, response) {
   //   });
 });
 
-// app.post('/oauth/refresh', function(request, response) {
-//   const { token } = request.body;
-//   axios({
-//     ...configs,
-//     data: `grant_type=refresh_token&refresh_token=${token}`,
-//   })
-//     .then(({ data }) => {
-//       const tokens = formatTokens(data);
-//       response.setHeader('Content-Type', 'text/html');
-//       response.status(200);
-//       response.send(responseHTML(tokens));
-//     })
-//     .catch(e => {
-//       // console.log(e)
-//       if (e.response.headers['content-type'] === 'text/html; charset=UTF-8') {
-//         response.setHeader('Content-Type', 'text/html');
-//         response.send(e.response.data);
-//       } else {
-//         response.status(e.response.status);
-//         response.json({
-//           code: e.response.status,
-//           message: e.response.statusText,
-//           error: e.response.data,
-//         });
-//       }
-//     });
-// });
+app.post('/oauth/refresh', async function(request, response) {
+  const { token } = request.body;
+  let res, error;
+  try {
+    res = await axios({
+      ...configs,
+      data: `grant_type=refresh_token&refresh_token=${token}`,
+    });
+  } catch (e) {
+    error = e;
+    if (e.response.headers['content-type'] === 'text/html; charset=UTF-8') {
+      response.setHeader('Content-Type', 'text/html');
+      response.send(e.response.data);
+    } else {
+      response.status(e.response.status);
+      response.json({
+        code: e.response.status,
+        message: e.response.statusText,
+        error: e.response.data,
+      });
+    }
+  } finally {
+    if (!error) {
+      const tokens = formatTokens((res as AxiosResponse).data);
+      response.setHeader('Content-Type', 'text/html');
+      response.status(200);
+      response.send(responseHTML(tokens));
+    }
+  }
+});
 
 app.get('/', function(request, response) {
   response.setHeader('Content-Type', 'application/json');
