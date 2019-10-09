@@ -1,4 +1,4 @@
 import * as functions from 'firebase-functions';
-import server from './server';
+import app from './oauth';
 
-export const v1 = functions.https.onRequest(server);
+export const oauth = functions.https.onRequest(app);
