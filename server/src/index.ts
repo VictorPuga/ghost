@@ -9,9 +9,6 @@ import { stringToBase64, responseHTML, formatTokens } from './utilities';
 // import { client_id, client_secret } from '../keys';
 
 const { client_id, client_secret } = process.env;
-console.log('------------------------');
-console.log({ client_id, client_secret });
-console.log('------------------------');
 
 const configs: AxiosRequestConfig = {
   method: 'POST',
