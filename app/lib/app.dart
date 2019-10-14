@@ -8,7 +8,6 @@ import 'package:ghost/blocs/progress/progress.dart';
 import 'package:ghost/repositories/api_repository.dart';
 import 'package:ghost/repositories/auth_repository.dart';
 import 'package:ghost/repositories/db_repository.dart';
-import 'package:ghost/utils.dart';
 import 'package:ghost/views/tabs/tabs.dart';
 import 'package:ghost/views/views.dart';
 import 'package:ghost/widgets/helpers/user_provider.dart';

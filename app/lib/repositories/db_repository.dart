@@ -209,6 +209,7 @@ class DBRepository {
           ProgressUpdate(
             progress: progress / totalBytes,
             status: 'Downloading assets: $current of $total',
+            isLoading: true,
           ),
         );
       },

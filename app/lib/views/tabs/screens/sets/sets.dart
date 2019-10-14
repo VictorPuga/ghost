@@ -6,6 +6,7 @@ import 'package:ghost/blocs/api/api.dart';
 import 'package:ghost/models/models.dart';
 import 'package:ghost/repositories/api_repository.dart';
 import 'package:ghost/repositories/db_repository.dart';
+import 'package:ghost/views/tabs/screens/sets/set.dart';
 import 'package:ghost/widgets/helpers/user_provider.dart';
 import 'package:ghost/widgets/ui/refresh_header.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -13,6 +14,7 @@ import 'select_configs.dart';
 
 class Sets extends StatefulWidget {
   Sets({Key key}) : super(key: key);
+
   @override
   _SetsState createState() => _SetsState();
 }
@@ -89,6 +91,7 @@ class _SetsState extends State<Sets> {
           bloc: _apiBloc,
           builder: (BuildContext context, APIState state) {
             List<ItemSet> sets = [];
+            List<String> characterIds = [];
             if (state.hasError) {
               _refreshController.refreshFailed();
               // return Container(child: const Text('error'));
@@ -97,35 +100,36 @@ class _SetsState extends State<Sets> {
 
             if (state is APILoading<APISets>) {
               sets = state.prevState.sets;
+              characterIds = state.prevState.characterIds;
             }
             if (state is APISets) {
               _refreshController.refreshCompleted();
               sets = state.sets;
+              characterIds = state.characterIds;
             }
 
-            // return _buildItem(context, state, i);
-
-            print(state.hasError);
             return SmartRefresher(
               enablePullDown: true,
               header: RefreshHeader(),
               controller: _refreshController,
               onRefresh: _onRefresh,
               child: ListView.builder(
-                itemCount: sets.length,
+                itemCount: sets.isNotEmpty ? sets.length : 1,
                 itemBuilder: (BuildContext context, int i) {
+                  if (sets.isEmpty) {
+                    return const Text('You have no items');
+                  }
                   if (state is InitialAPIState ||
                       (state is APILoading && state.prevState == null)) {
                     return Container();
                   }
                   if (state.hasError) {
-                    return Text('error');
                     return i == 0 ? Text('error') : Container();
                   }
-                  if (state is APILoading) {
-                    return _buildItem(context, state.prevState, i);
-                  }
-                  return _buildItem(context, state, i);
+                  // if (state is APILoading) {
+                  //   return _buildItem(context, sets, i);
+                  // }
+                  return _buildItem(context, sets, characterIds, i);
                 },
               ),
             );
@@ -142,20 +146,50 @@ class _SetsState extends State<Sets> {
         card: _infoCard,
       ),
     );
-    // final a = await APIRepository().test();
-    // print(a);
-    // _refreshController.refreshCompleted();
   }
 
-  _buildItem(BuildContext context, APISets state, int i) {
-    final itemSet = state.sets[i];
+  _buildItem(
+    BuildContext context,
+    List<ItemSet> sets,
+    List<String> characterIds,
+    int i,
+  ) {
+    final itemSet = sets[i];
     return CupertinoButton(
-      child: Container(
-        child: Text(itemSet.name ?? ''),
-      ),
+      padding: const EdgeInsets.all(0),
+      borderRadius: const BorderRadius.all(Radius.circular(5)),
+      pressedOpacity: 0.8,
       onPressed: () {
         // print(itemSet.setId);
+        // APIRepository().deleteSet(itemSet.setId);
+        Navigator.of(context).push(
+          CupertinoPageRoute(
+            builder: (_) => SetView(
+              itemSet: itemSet,
+              membershipType: _infoCard.membershipType,
+              accessToken: _credentials.accessToken,
+              characterIds: characterIds,
+            ),
+          ),
+        );
       },
+      child: Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            // top: BorderSide(width: 0.5, color: Colors.black12),
+            bottom: BorderSide(width: 0.5, color: Colors.black12),
+          ),
+        ),
+        height: 50,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            children: <Widget>[
+              Text(itemSet.name ?? ''),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

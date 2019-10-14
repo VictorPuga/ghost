@@ -9,6 +9,7 @@ class ItemSet extends BaseModel {
   final List<String> itemIds;
   final DateTime dateCreated;
   final int classCategoryHash;
+  final String characterId;
 
   ItemSet({
     this.userId,
@@ -19,6 +20,7 @@ class ItemSet extends BaseModel {
     this.itemIds,
     this.dateCreated,
     this.classCategoryHash,
+    this.characterId,
   }) : super([
           userId,
           setId,
@@ -28,6 +30,7 @@ class ItemSet extends BaseModel {
           itemIds,
           dateCreated,
           classCategoryHash,
+          characterId,
         ]);
 
   factory ItemSet.fromJson(Map<String, dynamic> res) {
@@ -38,25 +41,25 @@ class ItemSet extends BaseModel {
     final List<Item> weapons = res['weapons'] != null
         ? List.from(
             res['weapons'].map(
-              (el) {
-                printObject(jsonDecode(el));
-                return null;
-                return el != null ? Item.fromJson(jsonDecode(el)) : null;
-              },
+              (el) => el != null
+                  ? Item.fromJson(Map<String, dynamic>.from(el))
+                  : null,
             ),
           )
         : null;
-    final armor = [];
-    // final List<Item> armor = res['armor'] != null
-    //     ? List.from(
-    //         res['weapons'].map(
-    //           (el) => el != null ? Item.fromJson(jsonDecode(el)) : null,
-    //         ),
-    //       )
-    //     : null;
+
+    final List<Item> armor = res['armor'] != null
+        ? List.from(
+            res['armor'].map(
+              (el) => el != null
+                  ? Item.fromJson(Map<String, dynamic>.from(el))
+                  : null,
+            ),
+          )
+        : null;
 
     final List<String> itemIds = res['itemIds'] != null //
-        ? List.from(jsonDecode(res['itemIds']))
+        ? List.from(res['itemIds'])
         : null;
 
     return ItemSet(
@@ -68,6 +71,7 @@ class ItemSet extends BaseModel {
       itemIds: itemIds,
       dateCreated: dateCreated,
       classCategoryHash: res['classCategoryHash'],
+      characterId: res['characterId'],
     );
   }
 
@@ -81,5 +85,6 @@ class ItemSet extends BaseModel {
         'itemIds': itemIds,
         'dateCreated': dateCreated?.toIso8601String(),
         'classCategoryHash': classCategoryHash,
+        'characterId': characterId
       };
 }

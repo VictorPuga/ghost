@@ -45,36 +45,40 @@ class CharacterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoButton(
-      pressedOpacity: 0.7,
-      onPressed: onPressed,
-      child: Container(
-        // decoration: BoxDecoration(
-        //   boxShadow: [
-        //     BoxShadow(
-        //       color: Color.fromRGBO(0, 0, 0, 0.5),
-        //       blurRadius: 10,
-        //       offset: Offset(2, 2),
-        //     )
-        //   ],
-        // ),
-        child: Row(
-          children: [
-            Expanded(
-              child: AspectRatio(
-                aspectRatio: 474 / 96,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10),
-                  ),
-                  child: Container(
-                    color: _color,
-                    child: !empty ? _content() : LoadingImage(),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: CupertinoButton(
+        padding: const EdgeInsets.all(0),
+        pressedOpacity: 0.7,
+        onPressed: onPressed,
+        child: Container(
+          // decoration: BoxDecoration(
+          //   boxShadow: [
+          //     BoxShadow(
+          //       color: Color.fromRGBO(0, 0, 0, 0.5),
+          //       blurRadius: 10,
+          //       offset: Offset(2, 2),
+          //     )
+          //   ],
+          // ),
+          child: Row(
+            children: [
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 474 / 96,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(10),
+                    ),
+                    child: Container(
+                      color: _color,
+                      child: !empty ? _content() : LoadingImage(),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

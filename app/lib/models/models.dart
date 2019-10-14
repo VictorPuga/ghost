@@ -9,7 +9,6 @@ import 'package:bungie_api/models/destiny_item_component.dart';
 import 'package:bungie_api/models/destiny_item_instance_component.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:ghost/utils.dart';
 import 'package:meta/meta.dart';
 
 part './destiny_2.dart';

@@ -88,7 +88,7 @@ class _ItemListState extends State<ItemList> {
               _refreshController.refreshCompleted();
               itemCount = state.sortedItems.categories.length + 1;
             }
-            if (state is APILoading<APIAllItems> && state.prevState != null) {
+            if (state is APILoading<APIAllItems>) {
               itemCount = state.prevState.sortedItems.categories.length + 1;
             }
 
@@ -110,8 +110,7 @@ class _ItemListState extends State<ItemList> {
                       (state is APILoading && state.prevState == null)) {}
                   if (state.hasError) {}
 
-                  if (state is APILoading<APIAllItems> &&
-                      state.prevState != null) {
+                  if (state is APILoading<APIAllItems>) {
                     if (i == itemCount - 1) {
                       items = state.prevState.vaultItems;
                     } else {

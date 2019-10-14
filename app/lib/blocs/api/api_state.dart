@@ -5,8 +5,8 @@ import 'package:ghost/models/models.dart';
 
 abstract class APIState extends Equatable {
   APIState([List props = const []]) : super(props);
-  get error => null;
-  get hasError => error != null;
+  String error;
+  bool get hasError => error != null;
 }
 
 class InitialAPIState extends APIState {}
@@ -14,6 +14,7 @@ class InitialAPIState extends APIState {}
 class APIError extends APIState {
   final String error;
   final StackTrace stacktrace;
+
   APIError({this.error, this.stacktrace}) : super([error, stacktrace]);
 
   @override
@@ -25,7 +26,8 @@ class APIError extends APIState {
 
 class APILoading<S extends APIState> extends APIState {
   final S prevState;
-  final error;
+  String error;
+
   APILoading({this.prevState, this.error}) : super([prevState, error]);
 
   @override
@@ -38,7 +40,8 @@ class APILoading<S extends APIState> extends APIState {
 class APICredentials extends APIState {
   final Credentials credentials;
   final UserMembershipData membershipData;
-  final error;
+  String error;
+
   APICredentials(this.credentials, this.membershipData, {this.error})
       : super([credentials, error]);
 
@@ -52,7 +55,7 @@ class APICredentials extends APIState {
 
 class APIProfile extends APIState {
   final DestinyProfileResponse profileResponse;
-  final error;
+  String error;
   APIProfile(this.profileResponse, {this.error})
       : super([profileResponse, error]);
 
@@ -65,7 +68,8 @@ class APIProfile extends APIState {
 
 class APICharacters extends APIState {
   final List<Character> characters;
-  final error;
+  String error;
+
   APICharacters(this.characters, {this.error}) : super([characters, error]);
 
   @override
@@ -82,20 +86,18 @@ class APICharacter extends APIState {
 
   // final List<Item> items;
   final SortedItems sortedItems;
-  final error;
+  String error;
 
   APICharacter({
     this.character,
     this.inventory,
     this.equipment,
-    // this.items,
     this.sortedItems,
     this.error,
   }) : super([
           character,
           inventory,
           equipment,
-          // items,
           sortedItems,
         ]);
 
@@ -104,7 +106,6 @@ class APICharacter extends APIState {
     character: $character,
     inventory: $inventory,
     equipment: $equipment,
-
     sortedItems: $sortedItems,
     error: $error,
   }''';

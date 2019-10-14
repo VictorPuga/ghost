@@ -79,7 +79,7 @@ class _CharactersViewState extends State<CharacterView> {
             bloc: _apiBloc,
             builder: (BuildContext context, APIState state) {
               SortedItems inventory;
-              if (state.hasError) {
+              if (state.hasError || state is APIError) {
                 _refreshController.refreshFailed();
                 showBasicAlert(context, 'Error', state.error);
                 // return Text('error');

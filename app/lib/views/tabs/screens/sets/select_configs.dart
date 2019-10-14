@@ -106,7 +106,6 @@ class _SelectConfigsState extends State<SelectConfigs> {
                         CupertinoPageRoute(
                           builder: (_) => SelectItems(
                             name: _nameController.text,
-                            // type: _selected,
                             characterId: [..._characterIds, null][_selected],
                             classCategoryHash: [
                               DestinyCategoryHash.warlock,

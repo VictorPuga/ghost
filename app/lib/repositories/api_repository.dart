@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:bungie_api/api/destiny2.dart';
+import 'package:bungie_api/helpers/http.dart';
 import 'package:bungie_api/models/destiny_character_response.dart';
 import 'package:bungie_api/models/destiny_item_action_request.dart';
 import 'package:bungie_api/models/destiny_item_set_action_request.dart';
@@ -11,7 +12,6 @@ import 'package:bungie_api/models/user_membership_data.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ghost/models/models.dart';
 import 'package:meta/meta.dart';
@@ -94,26 +94,28 @@ class APIRepository {
     @required int membershipType,
     @required String accessToken,
   }) async {
-    try {
-      // final res =
-      await Destiny2.equipItem(
-        destinyClient,
-        DestinyItemActionRequest.fromJson(
-          {
-            'itemId': id,
-            'characterId': characterId,
-            'membershipType': membershipType,
-          },
-        ),
-        {'Authorization': 'Bearer ' + accessToken},
-      );
-    } on DioError catch (e) {
-      if (e.type == DioErrorType.RESPONSE) {
-        // final res = BungieResponse.fromJson(jsonDecode(e.response.toString()));
-        // return res.errorCode;
-        return jsonDecode(e.response.toString())['ErrorCode'];
-      }
-    }
+    // print(id);
+    // try {
+    // final res =
+    await Destiny2.equipItem(
+      destinyClient,
+      DestinyItemActionRequest.fromJson(
+        {
+          'itemId': id,
+          'characterId': characterId,
+          'membershipType': membershipType,
+        },
+      ),
+      {'Authorization': 'Bearer ' + accessToken},
+    );
+    // } on DioError
+    // catch (e) {
+    //   if (e.type == DioErrorType.RESPONSE) {
+    //     // final res = BungieResponse.fromJson(jsonDecode(e.response.toString()));
+    //     // return res.errorCode;
+    //     return jsonDecode(e.response.toString())['ErrorCode'];
+    //   }
+    // }
     return 1;
   }
 
@@ -124,7 +126,7 @@ class APIRepository {
     @required String accessToken,
   }) async {
     try {
-      await Destiny2.equipItems(
+      final res = await Destiny2.equipItems(
         destinyClient,
         DestinyItemSetActionRequest.fromJson(
           {
@@ -135,12 +137,11 @@ class APIRepository {
         ),
         {'Authorization': 'Bearer ' + accessToken},
       );
-    } on DioError catch (e) {
-      if (e.type == DioErrorType.RESPONSE) {
-        // final res = BungieResponse.fromJson(jsonDecode(e.response.toString()));
-        // return res.errorCode;
-        return jsonDecode(e.response.toString())['ErrorCode'];
-      }
+      print(res.errorCode);
+      if (res.errorCode != 1) {}
+    } on HttpResponse catch (e) {
+      print(e.mappedBody);
+      return null;
     }
     return 1;
   }
@@ -171,21 +172,29 @@ class APIRepository {
   Future<void> createSet(
     String userId,
     String name,
-    int classCategoryHash,
     List<Item> weapons,
     List<Item> armor,
+    int classCategoryHash,
+    String characterId,
   ) async {
     bool hasError = false;
     final String setId = Uuid().v4();
+    final List<String> ids = [
+      ...weapons.map((i) => i?.itemInstanceId),
+      ...armor.map((i) => i?.itemInstanceId),
+    ]..removeWhere((i) => i == null);
+
     // try {
     await _setsCollection.document(setId).setData({
       'userId': userId,
       'setId': setId,
       'name': name,
       'classCategoryHash': classCategoryHash,
+      'characterId': characterId,
       'dateCreated': DateTime.now().toIso8601String(),
       'weapons': [...weapons.map((i) => i?.toJson())],
-      'armor': [...armor.map((i) => i?.toJson())]
+      'armor': [...armor.map((i) => i?.toJson())],
+      'itemIds': ids,
     });
     // } catch (e) {
     //   hasError = true;

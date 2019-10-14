@@ -9,11 +9,22 @@ class LoadingIndicator extends StatelessWidget {
     return BlocBuilder(
       bloc: BlocProvider.of<ProgressBloc>(context),
       builder: (_, ProgressState state) {
+        if (!state.isLoading) {
+          return Container();
+        }
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(state.status),
-            Text(state.progress.toString()),
+            Container(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.all(Radius.circular(6)),
+              child: LinearProgressIndicator(
+                value: state.progress.toDouble(),
+                valueColor: AlwaysStoppedAnimation(CupertinoColors.activeBlue),
+                backgroundColor: CupertinoColors.lightBackgroundGray,
+              ),
+            ),
           ],
         );
       },

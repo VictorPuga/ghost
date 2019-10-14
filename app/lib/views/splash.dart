@@ -15,7 +15,7 @@ class SplashView extends StatelessWidget {
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: EdgeInsets.only(bottom: 40.0),
+                padding: EdgeInsets.only(bottom: 40.0, left: 40, right: 40),
                 child: LoadingIndicator(),
               ),
             ),

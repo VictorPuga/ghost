@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:bungie_api/enums/destiny_component_type_enum.dart';
 import 'package:bungie_api/models/destiny_character_component.dart';
 import 'package:bungie_api/models/destiny_character_response.dart';
@@ -46,12 +47,7 @@ class APIBloc extends Bloc<APIEvent, APIState> {
     APIEvent event,
   ) async* {
     if (event is ReceiveCredentials) {
-      yield APILoading();
-      final Credentials credentials =
-          apiRepository.parseCredentials(event.responseJson);
-      final UserMembershipData membershipData =
-          await apiRepository.getMembership(credentials.accessToken);
-      yield APICredentials(credentials, membershipData);
+      yield* _receiveCredentials(event);
     }
 
     if (event is GetUser) {
@@ -68,229 +64,254 @@ class APIBloc extends Bloc<APIEvent, APIState> {
     }
 
     if (event is GetProfile) {
-      yield APILoading();
-      final DestinyProfileResponse profile = await apiRepository.getProfile(
-        card: event.card,
-        accessToken: event.accessToken,
-        components: event.components,
-      );
-      yield APIProfile(profile);
+      yield* _getProfile(event);
     }
 
     if (event is GetCharacters) {
-      assert(dbRepository != null);
-      yield APILoading<APICharacters>(
-        prevState: currentState is APICharacters ? currentState : null,
-      );
-      final DestinyProfileResponse profileResponse =
-          await apiRepository.getProfile(
-        card: event.card,
-        accessToken: event.accessToken,
-        components: [DestinyComponentType.Characters],
-      );
-
-      final List<DestinyCharacterComponent> characterList =
-          profileResponse.characters.data.values.toList();
-      final List<CharacterData> characterData =
-          await dbRepository.getCharacterData(characterList);
-
-      final List<Character> characters = [
-        Character.fromResponse(characterList[0], characterData[0]),
-        Character.fromResponse(characterList[1], characterData[1]),
-        Character.fromResponse(characterList[2], characterData[2]),
-      ];
-      yield APICharacters(characters);
+      yield* _getCharacters(event);
     }
 
     if (event is GetCharacter) {
-      assert(dbRepository != null);
-      yield APILoading<APICharacter>(
-        prevState: currentState is APICharacter ? currentState : null,
-      );
-      final DestinyCharacterResponse characterResponse =
-          await apiRepository.getCharacter(
-        card: event.card,
-        accessToken: event.accessToken,
-        characterId: event.characterId,
-        components: [
-          DestinyComponentType.CharacterInventories,
-          DestinyComponentType.CharacterEquipment,
-          DestinyComponentType.ItemInstances,
-        ],
-      );
-
-      final sorted = await _computeSorted(
-        characterResponse.inventory.data?.items ?? [],
-        characterResponse.equipment.data?.items ?? [],
-        characterResponse.itemComponents.instances.data ?? {},
-        sortBy: event.sortBy,
-      );
-
-      SortedItems sortedItems;
-
-      switch (event.sortBy) {
-        case Sorting.bucket:
-          final Map<int, Bucket> buckets =
-              await dbRepository.getBucketData(sorted.keys.toList());
-          sortedItems = SortedItems<Bucket>(
-            categories: buckets,
-            items: sorted,
-          );
-          break;
-        case Sorting.type:
-          throw Exception('Warning: case `Sorting.type` is not handled');
-      }
-
-      yield APICharacter(
-        // items: items,
-        sortedItems: sortedItems,
-        // inventory: characterResponse.inventory,
-        // equipment: characterResponse.equipment,
-      );
+      yield* _getCharacter(event);
     }
 
     if (event is EquipItem) {
-      APICharacter prevState;
-      SortedItems sorted;
-      if (currentState is APICharacter) {
-        prevState = currentState;
-        sorted = prevState.sortedItems;
-      }
-      yield APILoading<APICharacter>(prevState: prevState);
-
-      final int code = await apiRepository.equipItem(
-        id: event.id,
-        characterId: event.characterId,
-        membershipType: event.membershipType,
-        accessToken: event.accessToken,
-      );
-
-      if (code == 1) {
-        final newItems = sorted.items.map((k, v) {
-          final Item equipping = v.singleWhere(
-            (i) => i.itemInstanceId == event.id,
-            orElse: () => null,
-          );
-          final Item equipped = v.singleWhere(
-            (i) => i.isEquiped == true,
-            orElse: () => null,
-          );
-
-          if (equipping != null && equipped != null) {
-            final index = v.indexOf(equipping);
-            v.remove(equipping);
-            v.remove(equipped);
-            equipping.equip();
-            equipped.unEquip();
-            v.insert(0, equipping);
-            v.insert(index, equipped);
-          }
-          return MapEntry(k, v);
-        });
-
-        yield APICharacter(
-          // items: prevState.items,
-          sortedItems: SortedItems(
-            categories: sorted.categories,
-            items: newItems,
-          ),
-        );
-      } else {
-        // TODO: Implement APITransferError.
-        print('Error equipping item. Code: $code');
-        yield APICharacter(
-          // items: prevState.items,
-          sortedItems: prevState.sortedItems,
-          error: {'code': code},
-        );
-      }
+      yield* _equipItem(event);
     }
 
     if (event is GetSets) {
-      assert(dbRepository != null);
-      yield APILoading<APICharacters>(
-        prevState: currentState is GetSets ? currentState : null,
-      );
-      final DestinyProfileResponse profileResponse =
-          await apiRepository.getProfile(
-        card: event.card,
-        accessToken: event.accessToken,
-        components: [DestinyComponentType.Characters],
-      );
-
-      final List<String> characterIds =
-          profileResponse.characters.data.keys.toList();
-
-      final List<ItemSet> sets =
-          await apiRepository.getSets(event.card.membershipId);
-
-      yield APISets(
-        characterIds: characterIds,
-        sets: sets,
-      );
+      yield* _getSets(event);
     }
 
     if (event is GetAllItems) {
-      assert(dbRepository != null);
+      yield* _getAllItems(event);
+    }
 
-      yield APILoading<APIAllItems>(
-        prevState: currentState is APIAllItems ? currentState : null,
-      );
-      final DestinyProfileResponse profileResponse =
-          await apiRepository.getProfile(
-        card: event.card,
-        accessToken: event.accessToken,
-        components: [
-          DestinyComponentType.ProfileInventories,
-          DestinyComponentType.ItemInstances,
-          DestinyComponentType.Characters,
-          DestinyComponentType.CharacterInventories,
-          DestinyComponentType.CharacterEquipment,
-        ],
-      );
+    if (event is ThrowAPIError) {
+      yield APIError(error: event.error, stacktrace: event.stackTrace);
+    }
+  }
 
-      var sortedItems = SortedItems<Character>(
-        categories: <int, Character>{},
-        items: <int, List<Item>>{},
-      );
-      List<Item> vaultItems = [];
+  Stream<APIState> _receiveCredentials(ReceiveCredentials event) async* {
+    yield APILoading();
+    final Credentials credentials =
+        apiRepository.parseCredentials(event.responseJson);
+    final UserMembershipData membershipData =
+        await apiRepository.getMembership(credentials.accessToken);
+    yield APICredentials(credentials, membershipData);
+  }
 
-      for (int i = 0; i < 3; i++) {
-        sortedItems.addTo(
-          i,
-          [],
-          newCategory: Character(),
+  Stream<APIState> _getProfile(GetProfile event) async* {
+    yield APILoading();
+    final DestinyProfileResponse profile = await apiRepository.getProfile(
+      card: event.card,
+      accessToken: event.accessToken,
+      components: event.components,
+    );
+    yield APIProfile(profile);
+  }
+
+  Stream<APIState> _getCharacters(GetCharacters event) async* {
+    assert(dbRepository != null);
+    if (currentState is APICharacters) {
+      yield APILoading<APICharacters>(prevState: currentState);
+    } else {
+      yield APILoading();
+    }
+    final DestinyProfileResponse profileResponse =
+        await apiRepository.getProfile(
+      card: event.card,
+      accessToken: event.accessToken,
+      components: [DestinyComponentType.Characters],
+    );
+
+    final List<DestinyCharacterComponent> characterList =
+        profileResponse.characters.data.values.toList();
+    final List<CharacterData> characterData =
+        await dbRepository.getCharacterData(characterList);
+
+    final List<Character> characters = [
+      Character.fromResponse(characterList[0], characterData[0]),
+      Character.fromResponse(characterList[1], characterData[1]),
+      Character.fromResponse(characterList[2], characterData[2]),
+    ];
+    yield APICharacters(characters);
+  }
+
+  Stream<APIState> _getCharacter(GetCharacter event) async* {
+    assert(dbRepository != null);
+    if (currentState is APICharacter) {
+      yield APILoading<APICharacter>(prevState: currentState);
+    } else {
+      yield APILoading();
+    }
+    final DestinyCharacterResponse characterResponse =
+        await apiRepository.getCharacter(
+      card: event.card,
+      accessToken: event.accessToken,
+      characterId: event.characterId,
+      components: [
+        DestinyComponentType.CharacterInventories,
+        DestinyComponentType.CharacterEquipment,
+        DestinyComponentType.ItemInstances,
+      ],
+    );
+
+    final sorted = await _computeSorted(
+      characterResponse.inventory.data?.items ?? [],
+      characterResponse.equipment.data?.items ?? [],
+      characterResponse.itemComponents.instances.data ?? {},
+      sortBy: event.sortBy,
+    );
+
+    SortedItems sortedItems;
+
+    switch (event.sortBy) {
+      case Sorting.bucket:
+        final Map<int, Bucket> buckets =
+            await dbRepository.getBucketData(sorted.keys.toList());
+        sortedItems = SortedItems<Bucket>(
+          categories: buckets,
+          items: sorted,
         );
-      }
+        break;
+      case Sorting.type:
+        throw Exception('Warning: case `Sorting.type` is not handled');
+    }
 
-      if (event.characterId == null) {
-        for (String id in profileResponse.characters.data.keys) {
-          final list = await _computeItemList(
-            profileResponse.characterInventories.data[id].items,
-            profileResponse.characterEquipment.data[id].items,
-            profileResponse.itemComponents.instances.data,
-            orderBy: event.orderBy,
-            bucketHash: event.bucketHash,
-            statHash: event.statHash,
-          );
+    yield APICharacter(
+      // items: items,
+      sortedItems: sortedItems,
+      // inventory: characterResponse.inventory,
+      // equipment: characterResponse.equipment,
+    );
+  }
 
-          final DestinyCharacterComponent charComponent =
-              profileResponse.characters.data[id];
-          final List<CharacterData> data =
-              await dbRepository.getCharacterData([charComponent]);
+  Stream<APIState> _equipItem(EquipItem event) async* {
+    APICharacter prevState;
+    SortedItems sorted;
+    if (currentState is APICharacter) {
+      prevState = currentState;
+      sorted = prevState.sortedItems;
+      yield APILoading<APICharacter>(prevState: prevState);
+    } else {
+      yield APILoading();
+    }
 
-          final character = Character.fromResponse(charComponent, data[0]);
+    final int code = await apiRepository.equipItem(
+      id: event.id,
+      characterId: event.characterId,
+      membershipType: event.membershipType,
+      accessToken: event.accessToken,
+    );
 
-          sortedItems.addTo(
-            num.tryParse(id),
-            list,
-            newCategory: character,
-          );
+    if (code == 1) {
+      final newItems = sorted.items.map((k, v) {
+        final Item equipping = v.singleWhere(
+          (i) => i.itemInstanceId == event.id,
+          orElse: () => null,
+        );
+        final Item equipped = v.singleWhere(
+          (i) => i.isEquiped == true,
+          orElse: () => null,
+        );
+
+        if (equipping != null && equipped != null) {
+          final index = v.indexOf(equipping);
+          v.remove(equipping);
+          v.remove(equipped);
+          equipping.equip();
+          equipped.unEquip();
+          v.insert(0, equipping);
+          v.insert(index, equipped);
         }
-      } else {
-        final sorted = await _computeItemList(
-          profileResponse.characterInventories.data[event.characterId].items,
-          profileResponse.characterEquipment.data[event.characterId].items,
+        return MapEntry(k, v);
+      });
+
+      yield APICharacter(
+        // items: prevState.items,
+        sortedItems: SortedItems(
+          categories: sorted.categories,
+          items: newItems,
+        ),
+      );
+    } else {
+      // TODO: Implement APITransferError.
+      print('Error equipping item. Code: $code');
+      yield APICharacter(
+        sortedItems: prevState.sortedItems,
+        // TODO: Map error code to description
+        error: jsonEncode({'code': code}),
+      );
+    }
+  }
+
+  Stream<APIState> _getSets(GetSets event) async* {
+    assert(dbRepository != null);
+    if (currentState is APISets) {
+      yield APILoading<APISets>(prevState: currentState);
+    } else {
+      yield APILoading();
+    }
+    final DestinyProfileResponse profileResponse =
+        await apiRepository.getProfile(
+      card: event.card,
+      accessToken: event.accessToken,
+      components: [DestinyComponentType.Characters],
+    );
+
+    final List<String> characterIds =
+        profileResponse.characters.data.keys.toList();
+
+    final List<ItemSet> sets =
+        await apiRepository.getSets(event.card.membershipId);
+
+    yield APISets(
+      characterIds: characterIds,
+      sets: sets,
+    );
+  }
+
+  Stream<APIState> _getAllItems(GetAllItems event) async* {
+    assert(dbRepository != null);
+
+    if (currentState is APIAllItems) {
+      yield APILoading<APIAllItems>(prevState: currentState);
+    } else {
+      yield APILoading();
+    }
+    final DestinyProfileResponse profileResponse =
+        await apiRepository.getProfile(
+      card: event.card,
+      accessToken: event.accessToken,
+      components: [
+        DestinyComponentType.ProfileInventories,
+        DestinyComponentType.ItemInstances,
+        DestinyComponentType.Characters,
+        DestinyComponentType.CharacterInventories,
+        DestinyComponentType.CharacterEquipment,
+      ],
+    );
+
+    var sortedItems = SortedItems<Character>(
+      categories: <int, Character>{},
+      items: <int, List<Item>>{},
+    );
+    List<Item> vaultItems = [];
+
+    for (int i = 0; i < 3; i++) {
+      sortedItems.addTo(
+        i,
+        [],
+        newCategory: Character(),
+      );
+    }
+
+    if (event.characterId == null) {
+      for (String id in profileResponse.characters.data.keys) {
+        final list = await _computeItemList(
+          profileResponse.characterInventories.data[id].items,
+          profileResponse.characterEquipment.data[id].items,
           profileResponse.itemComponents.instances.data,
           orderBy: event.orderBy,
           bucketHash: event.bucketHash,
@@ -298,36 +319,54 @@ class APIBloc extends Bloc<APIEvent, APIState> {
         );
 
         final DestinyCharacterComponent charComponent =
-            profileResponse.characters.data[event.characterId];
+            profileResponse.characters.data[id];
         final List<CharacterData> data =
             await dbRepository.getCharacterData([charComponent]);
 
         final character = Character.fromResponse(charComponent, data[0]);
 
         sortedItems.addTo(
-          num.tryParse(event.characterId),
-          sorted,
+          num.tryParse(id),
+          list,
           newCategory: character,
         );
       }
-      vaultItems = await _computeItemList(
-        profileResponse.profileInventory.data.items,
-        [],
+    } else {
+      final sorted = await _computeItemList(
+        profileResponse.characterInventories.data[event.characterId].items,
+        profileResponse.characterEquipment.data[event.characterId].items,
         profileResponse.itemComponents.instances.data,
+        orderBy: event.orderBy,
         bucketHash: event.bucketHash,
         statHash: event.statHash,
-        classHash: event.classCategoryHash,
       );
 
-      yield APIAllItems(
-        sortedItems: sortedItems,
-        vaultItems: vaultItems,
+      final DestinyCharacterComponent charComponent =
+          profileResponse.characters.data[event.characterId];
+      final List<CharacterData> data =
+          await dbRepository.getCharacterData([charComponent]);
+
+      final character = Character.fromResponse(charComponent, data[0]);
+
+      sortedItems.addTo(
+        num.tryParse(event.characterId),
+        sorted,
+        newCategory: character,
       );
     }
+    vaultItems = await _computeItemList(
+      profileResponse.profileInventory.data.items,
+      [],
+      profileResponse.itemComponents.instances.data,
+      bucketHash: event.bucketHash,
+      statHash: event.statHash,
+      classHash: event.classCategoryHash,
+    );
 
-    if (event is ThrowAPIError) {
-      yield APIError(error: event.error, stacktrace: event.stackTrace);
-    }
+    yield APIAllItems(
+      sortedItems: sortedItems,
+      vaultItems: vaultItems,
+    );
   }
 
   Future<Map<int, List<Item>>> _computeSorted(

@@ -49,7 +49,7 @@ class _DestinyClient extends HttpClient {
       );
     } on DioError catch (e) {
       if (e.type == DioErrorType.RESPONSE) {
-        // print(e.error);
+        // print(e.response.data);
         // print(e.stackTrace);
         throw HttpResponse(e.response.data, e.response.statusCode);
       }

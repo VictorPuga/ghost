@@ -103,9 +103,10 @@ class _SelectItemsState extends State<SelectItems> {
       await APIRepository().createSet(
         _userId,
         _name,
-        _classCategoryHash,
         _data[0],
         _data[1],
+        _classCategoryHash,
+        _characterId,
       );
     } catch (e) {
       hasError = true;
