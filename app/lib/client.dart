@@ -23,8 +23,11 @@ String joinParams([Map params = const {}]) {
   return '?' + p.join('&');
 }
 
-class _DestinyClient extends HttpClient {
+class DestinyClient extends HttpClient {
   static final Dio _dio = _initClient();
+  final String accessToken;
+
+  DestinyClient([this.accessToken]);
 
   static Dio _initClient() {
     final dio = Dio(BaseOptions(
@@ -44,12 +47,17 @@ class _DestinyClient extends HttpClient {
         data: config.body,
         options: Options(
           method: config.method,
-          headers: config.headers ?? {},
+          headers: accessToken == null
+              ? {}
+              : {
+                  'Authorization': 'Bearer ' + accessToken,
+                },
         ),
       );
     } on DioError catch (e) {
       if (e.type == DioErrorType.RESPONSE) {
-        // print(e.response.data);
+        print('Error in destinyClient');
+        print(e.response.data);
         // print(e.stackTrace);
         throw HttpResponse(e.response.data, e.response.statusCode);
       }
@@ -58,5 +66,3 @@ class _DestinyClient extends HttpClient {
     return HttpResponse(r.data, r.statusCode);
   }
 }
-
-final destinyClient = _DestinyClient();

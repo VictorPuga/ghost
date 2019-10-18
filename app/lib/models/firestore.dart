@@ -6,7 +6,7 @@ class ItemSet extends BaseModel {
   final String name;
   final List<Item> weapons;
   final List<Item> armor;
-  final List<String> itemIds;
+  // final List<String> itemIds;
   final DateTime dateCreated;
   final int classCategoryHash;
   final String characterId;
@@ -17,7 +17,7 @@ class ItemSet extends BaseModel {
     this.name,
     this.weapons,
     this.armor,
-    this.itemIds,
+    // this.itemIds,
     this.dateCreated,
     this.classCategoryHash,
     this.characterId,
@@ -27,7 +27,7 @@ class ItemSet extends BaseModel {
           name,
           weapons,
           armor,
-          itemIds,
+          // itemIds,
           dateCreated,
           classCategoryHash,
           characterId,
@@ -58,9 +58,9 @@ class ItemSet extends BaseModel {
           )
         : null;
 
-    final List<String> itemIds = res['itemIds'] != null //
-        ? List.from(res['itemIds'])
-        : null;
+    // final List<String> itemIds = res['itemIds'] != null //
+    //     ? List.from(res['itemIds'])
+    //     : null;
 
     return ItemSet(
       userId: res['userId'],
@@ -68,7 +68,7 @@ class ItemSet extends BaseModel {
       name: res['name'],
       weapons: weapons,
       armor: armor,
-      itemIds: itemIds,
+      // itemIds: itemIds,
       dateCreated: dateCreated,
       classCategoryHash: res['classCategoryHash'],
       characterId: res['characterId'],
@@ -82,7 +82,7 @@ class ItemSet extends BaseModel {
         'name': name,
         'weapons': weapons,
         'armor': armor,
-        'itemIds': itemIds,
+        // 'itemIds': itemIds,
         'dateCreated': dateCreated?.toIso8601String(),
         'classCategoryHash': classCategoryHash,
         'characterId': characterId

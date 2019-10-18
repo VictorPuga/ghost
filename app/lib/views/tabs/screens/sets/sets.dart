@@ -1,3 +1,4 @@
+import 'package:bungie_api/models/group_user_info_card.dart';
 import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,15 +25,12 @@ class _SetsState extends State<Sets> {
   RefreshController _refreshController;
 
   Credentials _credentials;
-  UserInfoCard _infoCard;
+  GroupUserInfoCard _infoCard;
 
   @override
   void initState() {
     super.initState();
-    _apiBloc = APIBloc(
-      apiRepository: APIRepository(),
-      dbRepository: DBRepository(),
-    );
+
     _refreshController = RefreshController(initialRefresh: true);
   }
 
@@ -40,6 +38,16 @@ class _SetsState extends State<Sets> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final provider = UserProvider.of(context);
+
+    if (provider.credentials.accessToken != _credentials?.accessToken) {
+      _apiBloc = APIBloc(
+        apiRepository: APIRepository(
+          provider.credentials.accessToken,
+        ),
+        dbRepository: DBRepository(),
+      );
+    }
+
     _credentials = provider.credentials;
     _infoCard = provider.userInfoCard;
   }
@@ -117,7 +125,7 @@ class _SetsState extends State<Sets> {
                 itemCount: sets.isNotEmpty ? sets.length : 1,
                 itemBuilder: (BuildContext context, int i) {
                   if (sets.isEmpty) {
-                    return const Text('You have no items');
+                    return const Text('You have no sets');
                   }
                   if (state is InitialAPIState ||
                       (state is APILoading && state.prevState == null)) {
@@ -141,10 +149,7 @@ class _SetsState extends State<Sets> {
 
   _onRefresh() async {
     _apiBloc.dispatch(
-      GetSets(
-        accessToken: _credentials.accessToken,
-        card: _infoCard,
-      ),
+      GetSets(card: _infoCard),
     );
   }
 
@@ -167,6 +172,7 @@ class _SetsState extends State<Sets> {
             builder: (_) => SetView(
               itemSet: itemSet,
               membershipType: _infoCard.membershipType,
+              membershipId: _infoCard.membershipId,
               accessToken: _credentials.accessToken,
               characterIds: characterIds,
             ),

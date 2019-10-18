@@ -1,11 +1,11 @@
-import 'package:bungie_api/models/user_info_card.dart';
+import 'package:bungie_api/models/group_user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:ghost/models/models.dart';
 
 class UserProvider extends InheritedWidget {
   final Widget child;
   final Credentials credentials;
-  final UserInfoCard userInfoCard;
+  final GroupUserInfoCard userInfoCard;
 
   UserProvider({
     Key key,

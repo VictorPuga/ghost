@@ -1,3 +1,4 @@
+import 'package:bungie_api/models/group_user_info_card.dart';
 import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,6 @@ class _AppState extends State<App> {
     _progressBloc = ProgressBloc();
     _authBloc = AuthBloc(
       authRepository: AuthRepository(),
-      apiRepository: APIRepository(),
     );
 
     _dbBloc = DBBloc(
@@ -81,7 +81,8 @@ class _AppState extends State<App> {
               return SplashView();
             }
             if (state is AuthAuthenticated) {
-              final UserInfoCard card = state.membershipData.destinyMemberships
+              final GroupUserInfoCard card = state
+                  .membershipData.destinyMemberships
                   .firstWhere((c) => c.membershipType == 2);
               return UserProvider(
                 credentials: state.credentials,

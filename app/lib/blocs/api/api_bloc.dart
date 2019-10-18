@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:bungie_api/enums/destiny_component_type_enum.dart';
 import 'package:bungie_api/models/destiny_character_component.dart';
 import 'package:bungie_api/models/destiny_character_response.dart';
@@ -8,8 +9,10 @@ import 'package:bungie_api/models/destiny_item_component.dart';
 import 'package:bungie_api/models/destiny_item_instance_component.dart';
 import 'package:bungie_api/models/destiny_profile_response.dart';
 import 'package:bungie_api/models/user_membership_data.dart';
+import 'package:cron/cron.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:ghost/repositories/auth_repository.dart';
 import 'package:ghost/repositories/db_repository.dart';
 import 'package:ghost/utils.dart';
 import 'package:meta/meta.dart';
@@ -21,10 +24,12 @@ import './api.dart';
 class APIBloc extends Bloc<APIEvent, APIState> {
   final APIRepository apiRepository;
   final DBRepository dbRepository;
+  // final AuthRepository authRepository;
 
   APIBloc({
     @required this.apiRepository,
     this.dbRepository,
+    // this.authRepository,
   }) : assert(apiRepository != null);
 
   @override
@@ -63,6 +68,10 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       //     await apiRepository.getMembership(event.accessToken);
     }
 
+    if (event is RefreshToken) {
+      yield* _refreshToken(event.token);
+    }
+
     if (event is GetProfile) {
       yield* _getProfile(event);
     }
@@ -93,11 +102,27 @@ class APIBloc extends Bloc<APIEvent, APIState> {
   }
 
   Stream<APIState> _receiveCredentials(ReceiveCredentials event) async* {
+    // assert(authRepository != null);
     yield APILoading();
     final Credentials credentials =
         apiRepository.parseCredentials(event.responseJson);
+
     final UserMembershipData membershipData =
-        await apiRepository.getMembership(credentials.accessToken);
+        // A new instance is needed because it needs the access token
+        await APIRepository(credentials.accessToken).getMembership();
+    // final cron = Cron()
+    //   ..schedule(new Schedule.parse('* * * * *'), () async {
+    //     final bool hasCredentials = await authRepository.hasCredentials();
+
+    //     if (hasCredentials) {
+    //       final Credentials c = await authRepository.getCredentials();
+    //       if (c.refreshTokenIsActive) {
+    //         final Credentials newCredentials =
+    printObject(await apiRepository.refreshToken(credentials.refreshToken));
+    //       }
+    //     }
+    //   });
+
     yield APICredentials(credentials, membershipData);
   }
 
@@ -105,7 +130,6 @@ class APIBloc extends Bloc<APIEvent, APIState> {
     yield APILoading();
     final DestinyProfileResponse profile = await apiRepository.getProfile(
       card: event.card,
-      accessToken: event.accessToken,
       components: event.components,
     );
     yield APIProfile(profile);
@@ -121,7 +145,6 @@ class APIBloc extends Bloc<APIEvent, APIState> {
     final DestinyProfileResponse profileResponse =
         await apiRepository.getProfile(
       card: event.card,
-      accessToken: event.accessToken,
       components: [DestinyComponentType.Characters],
     );
 
@@ -148,7 +171,6 @@ class APIBloc extends Bloc<APIEvent, APIState> {
     final DestinyCharacterResponse characterResponse =
         await apiRepository.getCharacter(
       card: event.card,
-      accessToken: event.accessToken,
       characterId: event.characterId,
       components: [
         DestinyComponentType.CharacterInventories,
@@ -202,7 +224,6 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       id: event.id,
       characterId: event.characterId,
       membershipType: event.membershipType,
-      accessToken: event.accessToken,
     );
 
     if (code == 1) {
@@ -256,7 +277,6 @@ class APIBloc extends Bloc<APIEvent, APIState> {
     final DestinyProfileResponse profileResponse =
         await apiRepository.getProfile(
       card: event.card,
-      accessToken: event.accessToken,
       components: [DestinyComponentType.Characters],
     );
 
@@ -283,7 +303,6 @@ class APIBloc extends Bloc<APIEvent, APIState> {
     final DestinyProfileResponse profileResponse =
         await apiRepository.getProfile(
       card: event.card,
-      accessToken: event.accessToken,
       components: [
         DestinyComponentType.ProfileInventories,
         DestinyComponentType.ItemInstances,
@@ -367,6 +386,10 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       sortedItems: sortedItems,
       vaultItems: vaultItems,
     );
+  }
+
+  Stream<APIState> _refreshToken(String token) async* {
+    await apiRepository.refreshToken(token);
   }
 
   Future<Map<int, List<Item>>> _computeSorted(

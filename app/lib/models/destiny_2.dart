@@ -38,6 +38,7 @@ class Item extends BaseModel {
   final int subTypeHash;
   bool isEquiped;
   final bool hasPrimaryStat;
+  final int quantity;
 
   final damageType;
   final itemCategoryHashes;
@@ -56,6 +57,7 @@ class Item extends BaseModel {
     this.typeName,
     this.subTypeHash,
     this.isEquiped,
+    this.quantity,
     this.damageType,
     this.itemCategoryHashes,
     this.classRequired,
@@ -72,6 +74,7 @@ class Item extends BaseModel {
           typeName,
           subTypeHash,
           isEquiped,
+          quantity,
           damageType,
           itemCategoryHashes,
           classRequired,
@@ -111,6 +114,7 @@ class Item extends BaseModel {
       typeName: definition.itemTypeDisplayName,
       subTypeHash: definition.itemSubType,
       isEquiped: instance.isEquipped,
+      quantity: item.quantity,
       damageType: damage,
       itemCategoryHashes: definition.itemCategoryHashes,
       classRequired: classRequired,
@@ -129,6 +133,7 @@ class Item extends BaseModel {
         typeName: res['typeName'],
         subTypeHash: res['subTypeHash'],
         isEquiped: res['isEquiped'],
+        quantity: res['quantity'],
         damageType: res['damageType'],
         itemCategoryHashes: res['itemCategoryHashes'],
         classRequired: res['classRequired'],
@@ -147,6 +152,7 @@ class Item extends BaseModel {
         'typeName': typeName,
         'subTypeHash': subTypeHash,
         'isEquiped': isEquiped,
+        'quantity': quantity,
         'damageType': damageType,
         'itemCategoryHashes': itemCategoryHashes,
         'classRequired': classRequired,

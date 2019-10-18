@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:bungie_api/models/group_user_info_card.dart';
 import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -36,16 +37,12 @@ class _CharactersViewState extends State<CharacterView> {
   APIBloc _apiBloc;
   RefreshController _refreshController;
   Credentials _credentials;
-  UserInfoCard _infoCard;
+  GroupUserInfoCard _infoCard;
 
   @override
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
-    _apiBloc = APIBloc(
-      apiRepository: APIRepository(),
-      dbRepository: DBRepository(),
-    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshController.requestRefresh();
@@ -56,6 +53,16 @@ class _CharactersViewState extends State<CharacterView> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final provider = UserProvider.of(context);
+
+    if (provider.credentials.accessToken != _credentials?.accessToken) {
+      _apiBloc = APIBloc(
+        apiRepository: APIRepository(
+          provider.credentials.accessToken,
+        ),
+        dbRepository: DBRepository(),
+      );
+    }
+
     _credentials = provider.credentials;
     _infoCard = provider.userInfoCard;
   }
@@ -109,7 +116,6 @@ class _CharactersViewState extends State<CharacterView> {
     _apiBloc.dispatch(
       GetCharacter(
         card: _infoCard,
-        accessToken: _credentials.accessToken,
         characterId: _characterId,
         sortBy: Sorting.bucket,
       ),
@@ -122,7 +128,6 @@ class _CharactersViewState extends State<CharacterView> {
         id: item.itemInstanceId,
         characterId: _characterId,
         membershipType: _infoCard.membershipType,
-        accessToken: _credentials.accessToken,
       ),
     );
   }

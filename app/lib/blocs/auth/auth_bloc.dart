@@ -9,11 +9,11 @@ import './auth.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
-  final APIRepository apiRepository;
+  // final APIRepository apiRepository;
 
   AuthBloc({
     @required this.authRepository,
-    @required this.apiRepository,
+    // @required this.apiRepository,
   }) : assert(authRepository != null);
 
   @override
@@ -37,7 +37,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (hasCredentials) {
         final Credentials credentials = await authRepository.getCredentials();
         final UserMembershipData membershipData =
-            await apiRepository.getMembership(credentials.accessToken);
+            // A new instance is needed because it needs the access token
+            await APIRepository(credentials.accessToken).getMembership();
         yield AuthAuthenticated(credentials, membershipData);
       } else {
         yield AuthUnauthenticated();
@@ -57,6 +58,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
 
     if (event is SetAuthLoading) {
+      yield AuthLoading();
+    }
+
+    if (event is String) {
       yield AuthLoading();
     }
 

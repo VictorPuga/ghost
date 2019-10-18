@@ -1,3 +1,4 @@
+import 'package:bungie_api/models/group_user_info_card.dart';
 import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,22 +23,28 @@ class _CharactersViewState extends State<CharactersView> {
   APIBloc _apiBloc;
   RefreshController _refreshController;
   Credentials _credentials;
-  UserInfoCard _infoCard;
+  GroupUserInfoCard _infoCard;
 
   @override
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: true);
-    _apiBloc = APIBloc(
-      apiRepository: APIRepository(),
-      dbRepository: DBRepository(),
-    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final provider = UserProvider.of(context);
+
+    if (provider.credentials.accessToken != _credentials?.accessToken) {
+      _apiBloc = APIBloc(
+        apiRepository: APIRepository(
+          provider.credentials.accessToken,
+        ),
+        dbRepository: DBRepository(),
+      );
+    }
+
     _credentials = provider.credentials;
     _infoCard = provider.userInfoCard;
   }
@@ -98,10 +105,7 @@ class _CharactersViewState extends State<CharactersView> {
 
   void _onRefresh() {
     _apiBloc.dispatch(
-      GetCharacters(
-        card: _infoCard,
-        accessToken: _credentials.accessToken,
-      ),
+      GetCharacters(card: _infoCard),
     );
   }
 

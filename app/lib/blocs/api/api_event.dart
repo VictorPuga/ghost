@@ -1,4 +1,5 @@
 import 'package:bungie_api/enums/destiny_component_type_enum.dart';
+import 'package:bungie_api/models/group_user_info_card.dart';
 import 'package:bungie_api/models/user_info_card.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
@@ -42,64 +43,55 @@ class GetUser extends APIEvent {
 }
 
 class GetMembership extends APIEvent {
-  final String accessToken;
-  GetMembership({@required this.accessToken}) : super([accessToken]);
-
   @override
-  String toString() =>
-      'GetUser { accessToken: ${accessToken.substring(0, 40)}... }';
+  String toString() => 'GetUser';
 }
 
 class GetProfile extends APIEvent {
-  final UserInfoCard card;
-  final String accessToken;
+  final GroupUserInfoCard card;
   final List<int> components;
 
   GetProfile({
     @required this.card,
-    @required this.accessToken,
     this.components = const [DestinyComponentType.Characters],
-  }) : super([card, accessToken, components]);
+  }) : super([card, components]);
 
   @override
-  String toString() =>
-      'GetProfile { card: $card, components: $components, accessToken: ${accessToken.substring(0, 40)}... }';
+  String toString() => '''GetProfile {
+    card: $card,
+    components: $components,
+  }''';
 }
 
 class GetCharacters extends APIEvent {
-  final UserInfoCard card;
-  final String accessToken;
+  final GroupUserInfoCard card;
 
   GetCharacters({
     @required this.card,
-    @required this.accessToken,
-  }) : super([card, accessToken]);
+  }) : super([card]);
 
   @override
   String toString() => '''GetCharacters {
         card: $card,
-        accessToken: ${accessToken.substring(0, 40)}... 
       }''';
 }
 
 class GetCharacter extends APIEvent {
-  final UserInfoCard card;
+  final GroupUserInfoCard card;
   final String characterId;
-  final String accessToken;
+
   final Sorting sortBy;
   // final Order orderBy;
 
   GetCharacter({
     @required this.card,
     @required this.characterId,
-    @required this.accessToken,
     @required this.sortBy,
     // this.orderBy,
   })  : assert(sortBy != null),
         super([
           card,
           characterId,
-          accessToken,
           sortBy,
           // orderBy,
         ]);
@@ -108,7 +100,6 @@ class GetCharacter extends APIEvent {
   String toString() => '''GetCharacter {
     card: $card,
     characterId: $characterId,
-    accessToken: $accessToken,
     sortBy: $sortBy,
   }''';
 }
@@ -117,43 +108,36 @@ class EquipItem extends APIEvent {
   final String id;
   final String characterId;
   final int membershipType;
-  final String accessToken;
 
   EquipItem({
     @required this.id,
     @required this.characterId,
     @required this.membershipType,
-    @required this.accessToken,
-  }) : super([id, characterId, membershipType, accessToken]);
+  }) : super([id, characterId, membershipType]);
 
   @override
   String toString() => '''EquipItem {
     id: $id,
     characterId: $characterId,
     membershipType: $membershipType,
-    accessToken: $accessToken,
   }''';
 }
 
 class GetSets extends APIEvent {
-  final UserInfoCard card;
-  final String accessToken;
+  final GroupUserInfoCard card;
 
   GetSets({
     @required this.card,
-    @required this.accessToken,
-  }) : super([card, accessToken]);
+  }) : super([card]);
 
   @override
   String toString() => '''GetSets {
-      card: $card, 
-      accessToken: ${accessToken.substring(0, 40)}... 
+      card: $card,
     }''';
 }
 
 class GetAllItems extends APIEvent {
-  final UserInfoCard card;
-  final String accessToken;
+  final GroupUserInfoCard card;
   final int bucketHash;
   final Order orderBy;
   final String characterId;
@@ -162,7 +146,6 @@ class GetAllItems extends APIEvent {
 
   GetAllItems({
     @required this.card,
-    @required this.accessToken,
     @required this.bucketHash,
     this.characterId,
     this.orderBy = Order.defaultOrder,
@@ -172,7 +155,6 @@ class GetAllItems extends APIEvent {
         assert(orderBy != null),
         super([
           card,
-          accessToken,
           bucketHash,
           orderBy,
           characterId,
@@ -181,16 +163,17 @@ class GetAllItems extends APIEvent {
   @override
   String toString() => '''GetAllItems {
     card: $card,
-    accessToken: ${accessToken.substring(0, 40)}... 
     bucketHash: $bucketHash,
     orderBy: $orderBy,
     characterId: $characterId,
   }''';
 }
-// class RefreshToken extends APIEvent {
-//   final String token;
-//   RefreshToken({@required this.token}) : super([token]);
 
-//   @override
-//   String toString() => 'RefreshToken { token: $token }';
-// }
+class RefreshToken extends APIEvent {
+  final String token;
+
+  RefreshToken({@required this.token}) : super([token]);
+
+  @override
+  String toString() => 'RefreshToken { token: $token }';
+}

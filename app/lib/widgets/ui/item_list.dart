@@ -1,3 +1,4 @@
+import 'package:bungie_api/models/group_user_info_card.dart';
 import 'package:bungie_api/models/user_info_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -45,23 +46,29 @@ class _ItemListState extends State<ItemList> {
   APIBloc _apiBloc;
   RefreshController _refreshController;
   Credentials _credentials;
-  UserInfoCard _infoCard;
+  GroupUserInfoCard _infoCard;
 
   @override
   void initState() {
     super.initState();
 
     _refreshController = RefreshController(initialRefresh: true);
-    _apiBloc = APIBloc(
-      apiRepository: APIRepository(),
-      dbRepository: DBRepository(),
-    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final provider = UserProvider.of(context);
+
+    if (provider.credentials.accessToken != _credentials?.accessToken) {
+      _apiBloc = APIBloc(
+        apiRepository: APIRepository(
+          provider.credentials.accessToken,
+        ),
+        dbRepository: DBRepository(),
+      );
+    }
+
     _credentials = provider.credentials;
     _infoCard = provider.userInfoCard;
   }
@@ -277,7 +284,6 @@ class _ItemListState extends State<ItemList> {
     _apiBloc.dispatch(
       GetAllItems(
         card: _infoCard,
-        accessToken: _credentials.accessToken,
         bucketHash: _bucket.hash,
         orderBy: Order.levelDesc,
         statHash: _statHash,

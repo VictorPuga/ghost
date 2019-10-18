@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:screen/screen.dart';
+// import 'package:background_fetch/background_fetch.dart';
 
 import './app.dart';
 
@@ -26,8 +27,35 @@ class SimpleBlocDelegate extends BlocDelegate {
   }
 }
 
+// void task() async {
+//   print('[BackgroundFetch] Headless event received.');
+//   BackgroundFetch.finish();
+// }
+
 void main() {
   Screen.keepOn(true);
+
   // BlocSupervisor.delegate = SimpleBlocDelegate();
   runApp(App());
+  // BackgroundFetch.registerHeadlessTask(task);
 }
+
+// Future<void> initPlatformState() async {
+//   BackgroundFetch.configure(
+//     BackgroundFetchConfig(
+//       minimumFetchInterval: 15,
+//       stopOnTerminate: false,
+//       enableHeadless: true,
+//       requiresBatteryNotLow: false,
+//       requiresCharging: false,
+//       requiresStorageNotLow: false,
+//       requiresDeviceIdle: false,
+//       requiredNetworkType: BackgroundFetchConfig.NETWORK_TYPE_ANY,
+//     ),
+//     () async => task,
+//   ).then((int status) {
+//     print('[BackgroundFetch] configure success: $status');
+//   }).catchError((e) {
+//     print('[BackgroundFetch] configure ERROR: $e');
+//   });
+// }
