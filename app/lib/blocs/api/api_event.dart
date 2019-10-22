@@ -1,6 +1,5 @@
 import 'package:bungie_api/enums/destiny_component_type_enum.dart';
 import 'package:bungie_api/models/group_user_info_card.dart';
-import 'package:bungie_api/models/user_info_card.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 

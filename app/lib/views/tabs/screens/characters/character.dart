@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:bungie_api/models/group_user_info_card.dart';
-import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';

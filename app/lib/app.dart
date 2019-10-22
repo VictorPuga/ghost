@@ -1,5 +1,4 @@
 import 'package:bungie_api/models/group_user_info_card.dart';
-import 'package:bungie_api/models/user_info_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,6 +30,7 @@ class _AppState extends State<App> {
     _progressBloc = ProgressBloc();
     _authBloc = AuthBloc(
       authRepository: AuthRepository(),
+      apiRepository: APIRepository(),
     );
 
     _dbBloc = DBBloc(

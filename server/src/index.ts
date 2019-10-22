@@ -108,7 +108,6 @@ app.post('/oauth/refresh', async function(request, response) {
       const tokens = formatTokens((res as AxiosResponse).data);
       response.setHeader('Content-Type', 'application/json');
       response.status(200);
-      // response.send(responseHTML(tokens));
       response.send(tokens);
     }
   }

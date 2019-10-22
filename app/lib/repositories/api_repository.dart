@@ -13,14 +13,12 @@ import 'package:bungie_api/models/destiny_manifest.dart';
 import 'package:bungie_api/models/destiny_profile_response.dart';
 import 'package:bungie_api/models/general_user.dart';
 import 'package:bungie_api/models/group_user_info_card.dart';
-import 'package:bungie_api/models/user_info_card.dart';
 import 'package:bungie_api/models/user_membership_data.dart';
 import 'package:bungie_api/responses/destiny_item_response_response.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/foundation.dart';
-import 'package:ghost/utils.dart';
 
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -41,27 +39,23 @@ class APIRepository {
 
   Credentials parseCredentials(String jsonString) {
     final Map<String, dynamic> response = jsonDecode(jsonString);
-    final credentials = Credentials.fromJson(response);
-    return credentials;
+    return Credentials.fromJson(response);
   }
 
   Future<Credentials> refreshToken(
     String token,
   ) async {
-    // await Future.delayed(Duration(seconds: 1));
     final HttpResponse response = await _destinyClient.request(
       HttpClientConfig(
         'POST',
-        'ghost-companion.herokuapp.com/oauth/refresh',
+        'https://ghost-companion.herokuapp.com/oauth/refresh',
         null,
         {
           'token': token,
         },
       ),
     );
-    print(response.mappedBody);
-    print(response.mappedBody.runtimeType);
-    // return Credentials();
+    return Credentials.fromJson(response.mappedBody);
   }
 
   Future<DestinyManifest> getManifest() async {

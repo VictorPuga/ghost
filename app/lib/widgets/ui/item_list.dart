@@ -1,5 +1,4 @@
 import 'package:bungie_api/models/group_user_info_card.dart';
-import 'package:bungie_api/models/user_info_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';

@@ -29,13 +29,20 @@ class ThrowAuthError extends AuthEvent {
 class LogIn extends AuthEvent {
   final Credentials credentials;
   final UserMembershipData membershipData;
+  final bool isInitialLogin;
 
-  LogIn({@required this.credentials, @required this.membershipData})
-      : super([credentials, membershipData]);
+  LogIn({
+    @required this.credentials,
+    @required this.membershipData,
+    this.isInitialLogin = true,
+  }) : super([credentials, membershipData, isInitialLogin]);
 
   @override
-  String toString() =>
-      'LogIn { credentials: ${credentials.toString().substring(0, 40)}..., membershipData: ${membershipData.toString().substring(0, 40)}... }';
+  String toString() => '''LogIn {
+        credentials: ${credentials.toString().substring(0, 40)}..., 
+        membershipData: ${membershipData.toString().substring(0, 40)}...,
+        isInitialLogin_ $isInitialLogin,
+      }''';
 }
 
 class LogOut extends AuthEvent {

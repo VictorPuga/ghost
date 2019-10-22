@@ -44,7 +44,6 @@ dependencies:
     # path: /Users/victormanuelpugaruiz/Folders/Gits/bungie-api-dart
   cloud_firestore: ^0.12.9+4
   uuid: ^2.0.2
-  background_fetch: ^0.3.2
   cron: ^0.2.2
 
 dev_dependencies:

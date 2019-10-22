@@ -1,19 +1,23 @@
+import 'dart:async';
+import 'package:meta/meta.dart';
+
+import 'package:bloc/bloc.dart';
 import 'package:bungie_api/models/user_membership_data.dart';
+import 'package:cron/cron.dart';
+
 import 'package:ghost/models/models.dart';
 import 'package:ghost/repositories/api_repository.dart';
-import 'package:meta/meta.dart';
-import 'dart:async';
-import 'package:bloc/bloc.dart';
 import 'package:ghost/repositories/auth_repository.dart';
+
 import './auth.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
-  // final APIRepository apiRepository;
+  final APIRepository apiRepository;
 
   AuthBloc({
     @required this.authRepository,
-    // @required this.apiRepository,
+    @required this.apiRepository,
   }) : assert(authRepository != null);
 
   @override
@@ -32,21 +36,68 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthEvent event,
   ) async* {
     if (event is VerifyCredentials) {
+      assert(apiRepository != null);
       final bool hasCredentials = await authRepository.hasCredentials();
+
+      Cron()
+        // every 50 minutes
+        ..schedule(new Schedule.parse('*/50 * * * *'), () async {
+          try {
+            final bool _hasCredentials = await authRepository.hasCredentials();
+
+            if (_hasCredentials) {
+              final Credentials _c = await authRepository.getCredentials();
+              if (_c.refreshTokenIsActive) {
+                final Credentials _newCredentials =
+                    await apiRepository.refreshToken(_c.refreshToken);
+
+                final UserMembershipData membershipData =
+                    // A new instance is needed because it needs the access token
+                    await APIRepository(_newCredentials.accessToken)
+                        .getMembership();
+
+                print('refreshed token');
+
+                this.dispatch(
+                  LogIn(
+                    credentials: _newCredentials,
+                    membershipData: membershipData,
+                    isInitialLogin: false,
+                  ),
+                );
+              }
+            }
+          } catch (e, s) {
+            print(e);
+            print(s);
+          }
+        });
 
       if (hasCredentials) {
         final Credentials credentials = await authRepository.getCredentials();
-        final UserMembershipData membershipData =
-            // A new instance is needed because it needs the access token
-            await APIRepository(credentials.accessToken).getMembership();
-        yield AuthAuthenticated(credentials, membershipData);
+        if (credentials.accessTokenIsActive) {
+          final UserMembershipData membershipData =
+              await APIRepository(credentials.accessToken).getMembership();
+
+          yield AuthAuthenticated(credentials, membershipData);
+        } else if (credentials.refreshTokenIsActive) {
+          final Credentials newCredentials =
+              await apiRepository.refreshToken(credentials.refreshToken);
+
+          final UserMembershipData membershipData =
+              await APIRepository(newCredentials.accessToken).getMembership();
+
+          yield AuthAuthenticated(newCredentials, membershipData);
+        }
       } else {
         yield AuthUnauthenticated();
       }
     }
 
     if (event is LogIn) {
-      yield AuthLoading();
+      if (event.isInitialLogin) {
+        yield AuthLoading();
+      }
       await authRepository.saveCredentials(event.credentials);
       yield AuthAuthenticated(event.credentials, event.membershipData);
     }
