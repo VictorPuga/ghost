@@ -21,7 +21,6 @@ class UserProvider extends InheritedWidget {
   bool updateShouldNotify(InheritedWidget oldWidget) => false;
 
   static UserProvider of(BuildContext context) {
-    final provider = context.inheritFromWidgetOfExactType(UserProvider);
-    return provider as UserProvider;
+    return context.dependOnInheritedWidgetOfExactType<UserProvider>();
   }
 }

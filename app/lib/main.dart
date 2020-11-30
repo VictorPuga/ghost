@@ -27,7 +27,6 @@ class SimpleBlocDelegate extends BlocDelegate {
 }
 
 void main() {
-  Screen.keepOn(true);
-
   runApp(App());
+  Screen.keepOn(true);
 }

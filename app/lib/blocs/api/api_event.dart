@@ -135,6 +135,22 @@ class GetSets extends APIEvent {
     }''';
 }
 
+class GetItems extends APIEvent {
+  final GroupUserInfoCard card;
+  final List<String> itemIds;
+
+  GetItems({
+    @required this.card,
+    @required this.itemIds,
+  }) : super([card, itemIds]);
+
+  @override
+  String toString() => '''GetItems {
+    card: $card,
+    itemIds: $itemIds,
+  }''';
+}
+
 class GetAllItems extends APIEvent {
   final GroupUserInfoCard card;
   final int bucketHash;

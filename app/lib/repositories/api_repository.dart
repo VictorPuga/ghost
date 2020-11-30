@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bungie_api/api/destiny2.dart';
 import 'package:bungie_api/api/user.dart';
 import 'package:bungie_api/enums/destiny_component_type_enum.dart';
+import 'package:bungie_api/enums/transfer_statuses_enum.dart';
 import 'package:bungie_api/helpers/http.dart';
 import 'package:bungie_api/models/destiny_character_response.dart';
 import 'package:bungie_api/models/destiny_item_action_request.dart';
@@ -19,6 +20,7 @@ import 'package:bungie_api/responses/destiny_item_response_response.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/foundation.dart';
+import 'package:ghost/utils.dart';
 
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -31,11 +33,16 @@ class APIRepository {
   static final CollectionReference _setsCollection =
       _instance.collection('sets');
 
-  final String accessToken;
-  final DestinyClient _destinyClient;
+  String _accessToken;
+  DestinyClient _destinyClient;
 
-  APIRepository([this.accessToken])
-      : _destinyClient = DestinyClient(accessToken);
+  APIRepository([this._accessToken])
+      : _destinyClient = DestinyClient(_accessToken);
+
+  void setAccessToken(String newToken) {
+    _accessToken = newToken;
+    _destinyClient.accessToken = _accessToken;
+  }
 
   Credentials parseCredentials(String jsonString) {
     final Map<String, dynamic> response = jsonDecode(jsonString);
@@ -69,7 +76,7 @@ class APIRepository {
   }
 
   Future<UserMembershipData> getMembership() async {
-    assert(accessToken != null);
+    assert(_accessToken != null);
     final r = await User.getMembershipDataForCurrentUser(_destinyClient);
     // printObject(r.response.destinyMemberships);
     return r.response;
@@ -79,7 +86,7 @@ class APIRepository {
     @required GroupUserInfoCard card,
     @required List<int> components,
   }) async {
-    assert(accessToken != null);
+    assert(_accessToken != null);
     final r = await Destiny2.getProfile(
       _destinyClient,
       components,
@@ -94,7 +101,7 @@ class APIRepository {
     @required String characterId,
     @required List<int> components,
   }) async {
-    assert(accessToken != null);
+    assert(_accessToken != null);
     final r = await Destiny2.getCharacter(
       _destinyClient,
       characterId,
@@ -110,7 +117,7 @@ class APIRepository {
     @required String characterId,
     @required int membershipType,
   }) async {
-    assert(accessToken != null);
+    assert(_accessToken != null);
     // try {
     await Destiny2.equipItem(
       _destinyClient,
@@ -139,7 +146,7 @@ class APIRepository {
     @required String membershipId,
     @required int membershipType,
   }) async {
-    assert(accessToken != null);
+    assert(_accessToken != null);
     try {
       final itemResponses = await Future.wait(
         [
@@ -159,10 +166,24 @@ class APIRepository {
       if (itemResponses
           .where(
             (i) =>
-                i.item.data.transferStatus == 1 && i.characterId != characterId,
+                validateFlag(
+                  i.item.data.transferStatus,
+                  TransferStatuses.ItemIsEquipped,
+                ) &&
+                i.characterId != characterId,
           )
           .isNotEmpty) {
         return -1; // Item(s) equpped by other characters
+      }
+      if (itemResponses
+          .where(
+            (i) => validateFlag(
+              i.item.data.transferStatus,
+              TransferStatuses.NoRoomInDestination,
+            ),
+          )
+          .isNotEmpty) {
+        return -4;
       }
 
       // // final itemsOnCharacter =
@@ -231,7 +252,7 @@ class APIRepository {
     bool toVault = false,
   }) async {
     assert(items.length == characterIds.length);
-    assert(accessToken != null);
+    assert(_accessToken != null);
     // try {
     await Future.wait(
       [
@@ -263,7 +284,7 @@ class APIRepository {
     @required int membershipType,
     List<int> components = const [DestinyComponentType.ItemCommonData],
   }) async {
-    assert(accessToken != null);
+    assert(_accessToken != null);
     final DestinyItemResponseResponse r = await Destiny2.getItem(
       _destinyClient,
       components,
@@ -293,44 +314,66 @@ class APIRepository {
         final itemSet = ItemSet.fromJson(doc.data);
         sets.add(itemSet);
       });
+      sets.sort((el1, el2) => el2.dateCreated.compareTo(el1.dateCreated));
     }
     return sets;
   }
 
-  Future<void> createSet(
+  Future<ItemSet> createSet(
     String userId,
     String name,
-    List<Item> weapons,
-    List<Item> armor,
+    List<String> weapons,
+    List<String> armor,
     int classCategoryHash,
     String characterId,
   ) async {
     bool hasError = false;
     final String setId = Uuid().v4();
-    // final List<String> ids = [
-    //   ...weapons.map((i) => i?.itemInstanceId),
-    //   ...armor.map((i) => i?.itemInstanceId),
-    // ]..removeWhere((i) => i == null);
+    final DateTime dateCreated = DateTime.now();
 
     // try {
     await _setsCollection.document(setId).setData({
       'userId': userId,
       'setId': setId,
-      'name': name,
+      'name': name.trim(),
       'classCategoryHash': classCategoryHash,
       'characterId': characterId,
-      'dateCreated': DateTime.now().toIso8601String(),
-      'weapons': [...weapons.map((i) => i?.toJson())],
-      'armor': [...armor.map((i) => i?.toJson())],
-      // 'itemIds': ids,
+      'dateCreated': dateCreated.toIso8601String(),
+      'weapons': [...weapons],
+      'armor': [...armor],
     });
     // } catch (e) {
     //   hasError = true;
     // }
-    if (!hasError) {}
+    if (!hasError) {
+      return ItemSet(
+        userId: userId,
+        setId: setId,
+        name: name.trim(),
+        classCategoryHash: classCategoryHash,
+        characterId: characterId,
+        dateCreated: dateCreated,
+        weapons: weapons,
+        armor: armor,
+      );
+    }
+    return null;
   }
 
-  Future updateSet() async {}
+  Future<void> updateSet({
+    @required String setId,
+    String name,
+    List<String> weapons,
+    List<String> armor,
+  }) async {
+    // bool hasError = false;
+
+    await _setsCollection.document(setId).updateData({
+      if (name != null) 'name': name.trim(),
+      if (weapons != null) 'weapons': [...weapons],
+      if (armor != null) 'armor': [...armor],
+    });
+  }
 
   Future<void> deleteSet(String setId) async {
     await _setsCollection.document(setId).delete();

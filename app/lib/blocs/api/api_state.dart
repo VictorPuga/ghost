@@ -127,6 +127,17 @@ class APISets extends APIState {
   }''';
 }
 
+class APIItems extends APIState {
+  final Map<String, Item> items;
+
+  APIItems({this.items}) : super([items]);
+
+  @override
+  String toString() => '''APIItems{
+    items: $items,
+  }''';
+}
+
 class APIAllItems extends APIState {
   final SortedItems<Character> sortedItems;
   final List<Item> vaultItems;

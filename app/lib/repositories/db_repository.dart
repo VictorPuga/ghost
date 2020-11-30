@@ -175,12 +175,21 @@ class DBRepository {
     String name,
     List<int> progress,
   ) async {
+    assert(progressBloc != null);
+
     final Response<List<int>> response = await _get(
       path,
       current: progress[0],
       total: progress[1],
     );
     final Archive archive = ZipDecoder().decodeBytes(response.data);
+    progressBloc.dispatch(
+      ProgressUpdate(
+        progress: 1,
+        status: 'Installing',
+        isLoading: true,
+      ),
+    );
     for (final ArchiveFile file in archive) {
       final String fileName =
           // withoutExtension(basename(file.name)) +

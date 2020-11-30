@@ -3,9 +3,9 @@ part of models;
 class ItemSet extends BaseModel {
   final String userId;
   final String setId;
-  final String name;
-  final List<Item> weapons;
-  final List<Item> armor;
+  String name;
+  List<String> weapons;
+  List<String> armor;
   // final List<String> itemIds;
   final DateTime dateCreated;
   final int classCategoryHash;
@@ -38,25 +38,25 @@ class ItemSet extends BaseModel {
         ? DateTime.tryParse(res['dateCreated'])
         : null;
 
-    final List<Item> weapons = res['weapons'] != null
-        ? List.from(
-            res['weapons'].map(
-              (el) => el != null
-                  ? Item.fromJson(Map<String, dynamic>.from(el))
-                  : null,
-            ),
-          )
-        : null;
+    // final List<Item> weapons = res['weapons'] != null
+    //     ? List.from(
+    //         res['weapons'].map(
+    //           (el) => el != null
+    //               ? Item.fromJson(Map<String, dynamic>.from(el))
+    //               : null,
+    //         ),
+    //       )
+    //     : null;
 
-    final List<Item> armor = res['armor'] != null
-        ? List.from(
-            res['armor'].map(
-              (el) => el != null
-                  ? Item.fromJson(Map<String, dynamic>.from(el))
-                  : null,
-            ),
-          )
-        : null;
+    // final List<Item> armor = res['armor'] != null
+    //     ? List.from(
+    //         res['armor'].map(
+    //           (el) => el != null
+    //               ? Item.fromJson(Map<String, dynamic>.from(el))
+    //               : null,
+    //         ),
+    //       )
+    //     : null;
 
     // final List<String> itemIds = res['itemIds'] != null //
     //     ? List.from(res['itemIds'])
@@ -66,8 +66,8 @@ class ItemSet extends BaseModel {
       userId: res['userId'],
       setId: res['setId'],
       name: res['name'],
-      weapons: weapons,
-      armor: armor,
+      weapons: List<String>.from(res['weapons']),
+      armor: List<String>.from(res['armor']),
       // itemIds: itemIds,
       dateCreated: dateCreated,
       classCategoryHash: res['classCategoryHash'],

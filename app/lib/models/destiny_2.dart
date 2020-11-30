@@ -56,7 +56,7 @@ class Item extends BaseModel {
     this.typeHash,
     this.typeName,
     this.subTypeHash,
-    this.isEquiped,
+    this.isEquiped = false,
     this.quantity,
     this.damageType,
     this.itemCategoryHashes,

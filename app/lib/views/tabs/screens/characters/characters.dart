@@ -28,6 +28,10 @@ class _CharactersViewState extends State<CharactersView> {
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: true);
+    _apiBloc = APIBloc(
+      apiRepository: APIRepository(),
+      dbRepository: DBRepository(),
+    );
   }
 
   @override
@@ -35,17 +39,10 @@ class _CharactersViewState extends State<CharactersView> {
     super.didChangeDependencies();
     final provider = UserProvider.of(context);
 
-    if (provider.credentials.accessToken != _credentials?.accessToken) {
-      _apiBloc = APIBloc(
-        apiRepository: APIRepository(
-          provider.credentials.accessToken,
-        ),
-        dbRepository: DBRepository(),
-      );
-    }
-
     _credentials = provider.credentials;
     _infoCard = provider.userInfoCard;
+
+    _apiBloc.apiRepository.setAccessToken(_credentials.accessToken);
   }
 
   @override

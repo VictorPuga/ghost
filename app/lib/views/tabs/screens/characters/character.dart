@@ -42,6 +42,10 @@ class _CharactersViewState extends State<CharacterView> {
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
+    _apiBloc = APIBloc(
+      apiRepository: APIRepository(),
+      dbRepository: DBRepository(),
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshController.requestRefresh();
@@ -53,17 +57,10 @@ class _CharactersViewState extends State<CharacterView> {
     super.didChangeDependencies();
     final provider = UserProvider.of(context);
 
-    if (provider.credentials.accessToken != _credentials?.accessToken) {
-      _apiBloc = APIBloc(
-        apiRepository: APIRepository(
-          provider.credentials.accessToken,
-        ),
-        dbRepository: DBRepository(),
-      );
-    }
-
     _credentials = provider.credentials;
     _infoCard = provider.userInfoCard;
+
+    _apiBloc.apiRepository.setAccessToken(_credentials.accessToken);
   }
 
   @override
@@ -173,21 +170,26 @@ class _CharacterSectionState extends State<CharacterSection> {
     super.dispose();
   }
 
+  final _defaultValue = SortedFraction<Bucket>(
+    category: Bucket(),
+    items: [
+      Item(),
+      Item(),
+      Item(),
+      Item(),
+    ],
+  );
   @override
   Widget build(BuildContext context) {
-    final defaultValue = SortedFraction<Bucket>(
-      category: Bucket(),
-      items: [
-        Item(),
-        Item(),
-        Item(),
-        Item(),
-      ],
-    );
-
     List<List<SortedFraction>> data = [
-      [defaultValue, defaultValue, defaultValue],
-      [defaultValue, defaultValue, defaultValue, defaultValue, defaultValue],
+      [_defaultValue, _defaultValue, _defaultValue],
+      [
+        _defaultValue,
+        _defaultValue,
+        _defaultValue,
+        _defaultValue,
+        _defaultValue
+      ],
     ];
 
     if (_inventory != null) {
@@ -239,6 +241,7 @@ class _CharacterSectionState extends State<CharacterSection> {
                                   characterId: _characterId,
                                   data: data[i],
                                   onPressed: _onPressed,
+                                  showEquipped: true,
                                 ),
                               ],
                             ),

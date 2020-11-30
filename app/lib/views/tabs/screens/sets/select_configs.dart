@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ghost/custom_theme.dart';
 import 'package:ghost/models/models.dart';
 import 'package:ghost/views/tabs/screens/sets/select_items.dart';
+import 'package:ghost/utils.dart';
 
 class SelectConfigs extends StatefulWidget {
   final List<String> characterIds;
@@ -46,9 +47,12 @@ class _SelectConfigsState extends State<SelectConfigs> {
             NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification notif) {
                 if (notif is UserScrollNotification) {
-                  FocusScope.of(context).requestFocus(FocusNode());
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                  }
                 }
-                return true;
+                // return true;
+                return false;
               },
               child: ListView(
                 padding: const EdgeInsets.all(10),
@@ -95,28 +99,28 @@ class _SelectConfigsState extends State<SelectConfigs> {
                   CupertinoButton.filled(
                     child: const Text('Continue'),
                     onPressed: () {
-                      // if (_nameController.text.isEmpty) {
-                      //   showBasicAlert(
-                      //     context,
-                      //     'Oops',
-                      //     'The name of the set must not be empty',
-                      //   );
-                      // } else {
-                      Navigator.of(context).push(
-                        CupertinoPageRoute(
-                          builder: (_) => SelectItems(
-                            name: _nameController.text,
-                            characterId: [..._characterIds, null][_selected],
-                            classCategoryHash: [
-                              DestinyCategoryHash.warlock,
-                              DestinyCategoryHash.titan,
-                              DestinyCategoryHash.hunter,
-                              null
-                            ][_selected],
+                      if (_nameController.text.isEmpty) {
+                        showBasicAlert(
+                          context,
+                          'Oops',
+                          'The name of the set must not be empty.',
+                        );
+                      } else {
+                        Navigator.of(context).push(
+                          CupertinoPageRoute(
+                            builder: (_) => SelectItems(
+                              name: _nameController.text,
+                              characterId: [..._characterIds, null][_selected],
+                              classCategoryHash: [
+                                DestinyCategoryHash.warlock,
+                                DestinyCategoryHash.titan,
+                                DestinyCategoryHash.hunter,
+                                null
+                              ][_selected],
+                            ),
                           ),
-                        ),
-                      );
-                      // }
+                        );
+                      }
                     },
                   ),
                 ],

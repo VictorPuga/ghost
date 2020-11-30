@@ -23,7 +23,15 @@ class _WebViewExampleState extends State<LoginView> {
   void initState() {
     super.initState();
     _authBloc = BlocProvider.of<AuthBloc>(context);
-    _apiBloc = APIBloc(apiRepository: APIRepository());
+    _apiBloc = APIBloc(
+      apiRepository: APIRepository(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _apiBloc.dispose();
+    super.dispose();
   }
 
   @override
@@ -91,9 +99,11 @@ class _WebViewExampleState extends State<LoginView> {
         currentUrl = 'Loading...';
       });
     } else {
-      setState(() {
-        currentUrl = host;
-      });
+      if (host.isNotEmpty) {
+        setState(() {
+          currentUrl = host;
+        });
+      }
     }
   }
 }

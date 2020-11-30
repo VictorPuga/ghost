@@ -9,13 +9,21 @@ class SelectItems extends StatefulWidget {
   final String name;
   final String characterId;
   final int classCategoryHash;
+  final String setId;
+  final List<Item> initialWeapons;
+  final List<Item> initialArmor;
+  final APIRepository _apiRepository;
 
   SelectItems({
     Key key,
     this.name,
     this.characterId,
     this.classCategoryHash,
-  }) : super(key: key);
+    this.setId,
+    this.initialWeapons,
+    this.initialArmor,
+  })  : _apiRepository = APIRepository(),
+        super(key: key);
   @override
   _SelectItemsState createState() => _SelectItemsState();
 }
@@ -25,11 +33,23 @@ class _SelectItemsState extends State<SelectItems> {
   String get _characterId => widget.characterId;
   int get _classCategoryHash => widget.classCategoryHash;
 
+  String get _setId => widget.setId;
+  List<Item> get _initialWeapons => widget.initialWeapons;
+  List<Item> get _initialArmor => widget.initialArmor;
+
+  APIRepository get _apiRepository => widget._apiRepository;
+
   String _userId;
-  List<List<Item>> _data = [
-    [null, null, null],
-    [null, null, null, null, null],
-  ];
+  List<List<Item>> _data = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _data = [
+      _initialWeapons ?? [null, null, null],
+      _initialArmor ?? [null, null, null, null, null],
+    ];
+  }
 
   @override
   void didChangeDependencies() {
@@ -41,11 +61,18 @@ class _SelectItemsState extends State<SelectItems> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
+        previousPageTitle: 'Back',
         middle: Text(_name),
         trailing: CupertinoButton(
           child: const Text('Done'),
           padding: const EdgeInsets.all(0),
-          onPressed: () => _save(context),
+          onPressed: () {
+            if (_setId == null) {
+              _save(context);
+            } else {
+              _update(context);
+            }
+          },
         ),
       ),
       child: SafeArea(
@@ -98,22 +125,39 @@ class _SelectItemsState extends State<SelectItems> {
   }
 
   _save(BuildContext context) async {
-    bool hasError = false;
     try {
-      await APIRepository().createSet(
+      final ItemSet newSet = await _apiRepository.createSet(
         _userId,
         _name,
-        _data[0],
-        _data[1],
+        _data[0].map((i) => i?.itemInstanceId).toList(),
+        _data[1].map((i) => i?.itemInstanceId).toList(),
         _classCategoryHash,
         _characterId,
       );
+      // Navigator.of(context).popUntil((Route route) => route.isFirst);
+      Navigator.of(context)
+        ..pop()
+        ..pop(
+          newSet,
+        );
     } catch (e) {
-      hasError = true;
+      throw e;
     }
+  }
 
-    if (!hasError) {
-      Navigator.of(context).popUntil((Route route) => route.isFirst);
-    } else {}
+  _update(BuildContext context) async {
+    if (_data[0] != _initialWeapons || _data[1] != _initialArmor) {
+      await _apiRepository.updateSet(
+        setId: _setId,
+        weapons: _data[0].map((i) => i?.itemInstanceId).toList(),
+        armor: _data[1].map((i) => i?.itemInstanceId).toList(),
+      );
+    }
+    Navigator.of(context).pop<Map<String, List<String>>>(
+      {
+        'weapons': _data[0].map((i) => i?.itemInstanceId).toList(),
+        'armor': _data[1].map((i) => i?.itemInstanceId).toList(),
+      },
+    );
   }
 }

@@ -52,6 +52,10 @@ class _ItemListState extends State<ItemList> {
     super.initState();
 
     _refreshController = RefreshController(initialRefresh: true);
+    _apiBloc = APIBloc(
+      apiRepository: APIRepository(),
+      dbRepository: DBRepository(),
+    );
   }
 
   @override
@@ -59,17 +63,10 @@ class _ItemListState extends State<ItemList> {
     super.didChangeDependencies();
     final provider = UserProvider.of(context);
 
-    if (provider.credentials.accessToken != _credentials?.accessToken) {
-      _apiBloc = APIBloc(
-        apiRepository: APIRepository(
-          provider.credentials.accessToken,
-        ),
-        dbRepository: DBRepository(),
-      );
-    }
-
     _credentials = provider.credentials;
     _infoCard = provider.userInfoCard;
+
+    _apiBloc.apiRepository.setAccessToken(_credentials.accessToken);
   }
 
   @override

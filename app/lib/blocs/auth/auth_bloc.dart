@@ -41,7 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       Cron()
         // every 50 minutes
-        ..schedule(new Schedule.parse('*/50 * * * *'), () async {
+        ..schedule(Schedule.parse('*/50 * * * *'), () async {
           try {
             final bool _hasCredentials = await authRepository.hasCredentials();
 
@@ -87,7 +87,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final UserMembershipData membershipData =
               await APIRepository(newCredentials.accessToken).getMembership();
 
+          await authRepository.saveCredentials(newCredentials);
           yield AuthAuthenticated(newCredentials, membershipData);
+        } else {
+          yield AuthUnauthenticated();
         }
       } else {
         yield AuthUnauthenticated();

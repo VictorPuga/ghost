@@ -8,11 +8,16 @@ class ItemRow extends StatefulWidget {
   final String section;
   final List<Item> items;
   final void Function(Item) onPressed;
+  final void Function(Item) onLongPressed;
+  final bool showEquipped;
+
   ItemRow({
     Key key,
     @required this.section,
     this.items = const [],
     this.onPressed,
+    this.onLongPressed,
+    this.showEquipped = false,
   })  : assert(items != null),
         super(key: key);
   @override
@@ -23,9 +28,22 @@ class _ItemRowState extends State<ItemRow> {
   String get _section => widget.section;
   List<Item> get _items => widget.items;
   void Function(Item) get _onPressed => widget.onPressed;
+  void Function(Item) get _onLongPressed => widget.onLongPressed;
+  bool get showEquipped => widget.showEquipped;
 
   @override
   Widget build(BuildContext context) {
+    Item item;
+    List<Item> rest = [null, null, null];
+    if (_items.isNotEmpty) {
+      if (showEquipped && _items.where((i) => i.isEquiped).length == 1) {
+        item = _items.singleWhere((i) => i.isEquiped);
+        rest = _items.where((i) => !i.isEquiped).toList();
+      } else if (!showEquipped) {
+        item = _items.first;
+        rest = _items.sublist(1);
+      }
+    }
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
@@ -51,7 +69,9 @@ class _ItemRowState extends State<ItemRow> {
               Flexible(
                 flex: 3,
                 child: ItemCard(
-                  item: _items.length != 0 ? _items[0] : null,
+                  item: item,
+                  onPressed: _onPressed,
+                  onLongPressed: _onLongPressed,
                 ),
               ),
               Flexible(
@@ -61,7 +81,7 @@ class _ItemRowState extends State<ItemRow> {
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _items.length - 1,
+                    itemCount: rest.length,
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
@@ -70,8 +90,9 @@ class _ItemRowState extends State<ItemRow> {
                     ),
                     itemBuilder: (_, i) {
                       return ItemCard(
-                        item: _items[i + 1],
+                        item: rest[i],
                         onPressed: _onPressed,
+                        onLongPressed: _onLongPressed,
                       );
                     },
                   ),

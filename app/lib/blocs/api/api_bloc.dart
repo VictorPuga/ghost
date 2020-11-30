@@ -7,8 +7,11 @@ import 'package:bungie_api/models/destiny_character_response.dart';
 import 'package:bungie_api/models/destiny_inventory_item_definition.dart';
 import 'package:bungie_api/models/destiny_item_component.dart';
 import 'package:bungie_api/models/destiny_item_instance_component.dart';
+import 'package:bungie_api/models/destiny_item_response.dart';
+
 import 'package:bungie_api/models/destiny_profile_response.dart';
 import 'package:bungie_api/models/user_membership_data.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ghost/repositories/db_repository.dart';
@@ -17,10 +20,11 @@ import 'package:meta/meta.dart';
 import 'package:bloc/bloc.dart';
 import 'package:ghost/repositories/api_repository.dart';
 import 'package:ghost/models/models.dart';
+
 import './api.dart';
 
 class APIBloc extends Bloc<APIEvent, APIState> {
-  final APIRepository apiRepository;
+  APIRepository apiRepository;
   final DBRepository dbRepository;
 
   APIBloc({
@@ -86,6 +90,10 @@ class APIBloc extends Bloc<APIEvent, APIState> {
 
     if (event is GetSets) {
       yield* _getSets(event);
+    }
+
+    if (event is GetItems) {
+      yield* _getItems(event);
     }
 
     if (event is GetAllItems) {
@@ -273,6 +281,66 @@ class APIBloc extends Bloc<APIEvent, APIState> {
       characterIds: characterIds,
       sets: sets,
     );
+  }
+
+  Stream<APIState> _getItems(GetItems event) async* {
+    assert(dbRepository != null);
+    if (currentState is APIItems) {
+      yield APILoading<APIItems>(prevState: currentState);
+    } else {
+      yield APILoading();
+    }
+
+    final response = await Future.wait(
+      [
+        for (String id in event.itemIds)
+          () async {
+            try {
+              return MapEntry<String, DestinyItemResponse>(
+                id,
+                await apiRepository.getItem(
+                  instanceId: id,
+                  membershipId: event.card.membershipId,
+                  membershipType: event.card.membershipType,
+                  components: [
+                    DestinyComponentType.ItemInstances,
+                    DestinyComponentType.ItemCommonData,
+                  ],
+                ),
+              );
+            } catch (_) {
+              return MapEntry(id, null);
+            }
+          }()
+      ],
+    );
+
+    final List<int> itemHashes = response
+        .map((e) => e.value?.item?.data?.itemHash)
+        .where((i) => i != null)
+        .toList();
+
+    final itemData = await dbRepository.getItemData(itemHashes);
+
+    final Map<String, Item> items = {};
+
+    for (final res in response) {
+      if (res.value != null) {
+        final def = itemData.singleWhere(
+          (d) => d.hash == res.value.item.data.itemHash,
+          orElse: () => null,
+        );
+        items[res.key] = Item.fromResponse(
+          res.value.item.data,
+          def,
+          res.value.instance.data,
+        );
+      } else {
+        items[res.key] = null;
+      }
+    }
+
+    yield APIItems(items: items);
   }
 
   Stream<APIState> _getAllItems(GetAllItems event) async* {

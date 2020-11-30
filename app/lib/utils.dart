@@ -178,9 +178,12 @@ void showBasicAlert(BuildContext context, String title, String message) {
           CupertinoDialogAction(
             child: const Text('Ok'),
             onPressed: () => Navigator.of(ctx).pop(),
+            isDefaultAction: true,
           )
         ],
       );
     },
   );
 }
+
+bool validateFlag(int value, int flag) => (value & flag) == flag;

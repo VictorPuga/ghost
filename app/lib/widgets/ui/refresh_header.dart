@@ -3,7 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class RefreshHeader extends CustomHeader {
-  RefreshHeader({Key key}) : super(key: key, builder: _builder);
+  RefreshHeader({Key key})
+      : super(
+          key: key,
+          builder: _builder,
+          refreshStyle: RefreshStyle.UnFollow,
+        );
 
   static Widget _builder(BuildContext context, RefreshStatus status) {
     switch (status) {

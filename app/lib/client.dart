@@ -25,7 +25,7 @@ String joinParams([Map params = const {}]) {
 
 class DestinyClient extends HttpClient {
   static final Dio _dio = _initClient();
-  final String accessToken;
+  String accessToken;
 
   DestinyClient([this.accessToken]);
 
@@ -61,6 +61,9 @@ class DestinyClient extends HttpClient {
         // print(e.stackTrace);
         throw HttpResponse(e.response.data, e.response.statusCode);
       }
+    }
+    if (r == null) {
+      print('response is null!');
     }
 
     return HttpResponse(r.data, r.statusCode);
